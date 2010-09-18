@@ -1,0 +1,119 @@
+=encoding utf-8
+
+=head1 名前
+
+HTML::EmbeddedPerl - (主に)HTMLへのPerlコード埋め込み
+
+=head1 概要
+
+I<自動です>
+
+=head2 自動的に実行されている
+
+インスタンス化されたオブジェクト B<$epl> が渡される。
+コードタグ内で使う例。
+
+  # output header ($key,$value)
+  $epl->header_out('Content-Type','text/html');
+  # set of contents type, default is 'text/html', output forcing.
+  $epl->content_type('text/html');
+
+=head2 スクリプト内における使用
+
+  $htm = I<何か>;
+
+  use HTML::EmbeddedPerl;
+  $e = HTML::EmbeddedPerl->new();
+
+  # HTTPヘッダのセット (キー,値)
+  $e->header_out('Content-Create','foo');
+  # Content-Typeのセット、デフォルトは 'text/html'
+  $e->content_type('text/plain');
+
+  # HTTPヘッダとコンテンツの出力 (例:1)
+  $e->ep(\$htm);
+
+  # HTTPヘッダは出力されず、$rへコンテンツが返る
+  $r = $e->ep(\$htm);
+
+  # HTTPヘッダ出力
+  $e->flush;
+  # 上記と同じです (例:1)
+  print $r;
+
+=head1 説明
+
+(主に)HTMLのためのPerlコード埋め込み、それは簡素で容易です。
+
+I<E<lt>$ Perl-Code $E<gt>> をHTMLへ追加します。
+またコードブロックが多数あれば、コードブロック間で局所化された変数は使用できません。
+
+=head2 mod_perl2
+
+グローバル変数使いたくないのであれば B<$var> を使用してください。
+B<$var> は実行後に破棄されます。
+しかしそれは複数タグの間においても使用することができます。
+
+  E<lt>FilesMatchE<quot>.*\.phtml?$E<quot>E<gt>
+  SetHandler B<perl-script>
+  PerlResponseHandler HTML::EmbeddedPerl
+  PerlOptions +ParseHeaders
+  E<lt>/FilesMatchE<gt>
+
+=head2 コモン・ゲートウェイ・インターフェイス
+
+最初の行へと挿入します。
+
+  #!/あなたの/パス/twepl
+
+=head2 ラッパー
+
+tweplを使うことができない？ しかし wrapper.pl を利用することができます。
+
+  AddType application/x-embedded-perl .phtml
+  AddHandler application/x-embedded-perl .phtml
+  Action application/x-embedded-perl I</your/path/wrapper>
+
+=head1 タイムアウト
+
+ループ検知のためのタイムアウトを超えると強制終了します。
+必要ならグローバル変数 B<$TIMEOUT> を上書きして変更してください。
+
+  # 初期設定は E<quot>2E<quot> 秒です
+  $TIMEOUT = 2;
+
+alarm の下で既に実行されて、そのタイムアウトの変更はできません。
+
+  # 新規タイムアウトとして
+  alarm($TIMEOUT);
+  # タイムアウトを取り消す
+  alarm(0);
+
+=head2 mod_perl2
+
+  $TIMEOUT = B<X>;
+  # タイムアウトを取り消しタイムアウトを未設定とする
+  alarm(($TIMEOUT=0));
+
+=head2 コモン・ゲートウェイ・インターフェイス
+
+  # 新規タイムアウトとして
+  alarm(B<X>);
+
+=head2 ラッパー
+
+サブルーチン B<ep()> を呼ぶ前に
+
+  $HTML::EmbeddedPerl::TIMEOUT = B<X>;
+
+=head1 予約済み変数
+
+  $TIMEOUT(グローバル)
+  $epl
+  $var
+
+=head1 著者
+
+トゥインクル・コンピューティング <twinkle@cpan.org>
+
+=cut

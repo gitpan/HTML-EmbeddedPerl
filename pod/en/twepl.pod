@@ -1,0 +1,45 @@
+=head1 NAME
+
+twepl - The Perl embeddings for HTML.
+
+=head1 SYNOPSYS
+
+inserting first line to
+
+  #!/your/path/twepl
+
+=head1 DESCRIPTION
+
+The Perl-Code embeddings for HTML, it is simple and easy.
+
+adding I<E<lt>$ Perl-Code $E<gt>> to your HTML.
+if code blocks too many, cannot use local variables between code blocks.
+
+=head1 TIMEOUT
+
+force exiting over the timeout for loop detection.
+B<$TIMEOUT> is global, please change it overwritten.
+
+  # default is E<quot>2E<quot> seconds.
+  $TIMEOUT = 2;
+
+already executing under alarm, cannot change that timeout.
+
+  # set as new timeout.
+  alarm(B<X>);
+
+=head1 RESERVED
+
+  $TIMEOUT(global)
+  $epl
+  $var
+
+=head1 OPTIONS
+
+nothing options for twepl
+
+=head1 AUTHOR
+
+Twinkle Computing <twinkle@cpan.org>
+
+=cut

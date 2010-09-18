@@ -1,0 +1,5 @@
+Revision history for Perl extension HTML::EmbeddedPerl.
+
+0.01  Sun Sep 16 20:20:58 2010
+	- original version; created by h2xs 1.23 with options
+		-XA -n HTML::EmbeddedPerl

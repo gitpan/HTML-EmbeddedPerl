@@ -1,0 +1,82 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>名前</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@localhost" />
+</head>
+
+<body style="background-color: white">
+
+
+<!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
+
+<ul>
+
+	<li><a href="#______">名前</a></li>
+	<li><a href="#______">概要</a></li>
+	<li><a href="#______">説明</a></li>
+	<li><a href="#__________________">タイムアウト</a></li>
+	<li><a href="#__________________">予約済み変数</a></li>
+	<li><a href="#_______________">オプション</a></li>
+	<li><a href="#______">著者</a></li>
+</ul>
+
+<hr name="index" />
+</div>
+<!-- INDEX END -->
+
+<h1><a name="______">名前</a></h1>
+<p>twepl - (主に)HTMLへのPerlコード埋め込み</p>
+<p>
+</p>
+<hr />
+<h1><a name="______">概要</a></h1>
+<p>最初の行へと挿入します。</p>
+<pre>
+  #!/あなたの/パス/twepl</pre>
+<p>
+</p>
+<hr />
+<h1><a name="______">説明</a></h1>
+<p>(主に)HTMLのためのPerlコード埋め込み、それは簡素で容易です。</p>
+<p><em>&lt;$ Perl-Code $&gt;</em> をHTMLへ追加します。
+またコードブロックが多数あれば、コードブロック間で局所化された変数は使用できません。</p>
+<p>
+</p>
+<hr />
+<h1><a name="__________________">タイムアウト</a></h1>
+<p>ループ検知のためのタイムアウトを超えると強制終了します。
+必要ならグローバル変数 <strong>$TIMEOUT</strong> を上書きして変更してください。</p>
+<pre>
+  # 初期設定は E&lt;quot&gt;2E&lt;quot&gt; 秒です
+  $TIMEOUT = 2;</pre>
+<p>alarm の下で既に実行されて、そのタイムアウトの変更はできません。</p>
+<pre>
+  # 新規タイムアウトとして
+  alarm(B&lt;X&gt;);</pre>
+<p>
+</p>
+<hr />
+<h1><a name="__________________">予約済み変数</a></h1>
+<pre>
+  $TIMEOUT(グローバル)
+  $epl
+  $var</pre>
+<p>
+</p>
+<hr />
+<h1><a name="_______________">オプション</a></h1>
+<p>twep[lt]のためのオプションは何もありません。</p>
+<p>
+</p>
+<hr />
+<h1><a name="______">著者</a></h1>
+<p>トゥインクル・コンピューティング &lt;<a href="mailto:twinkle@cpan.org">twinkle@cpan.org</a>&gt;</p>
+
+</body>
+
+</html>
