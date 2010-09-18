@@ -10,8 +10,11 @@ use ExtUtils::Embed;
 my($target,$source,$srclen) = (shift @ARGV,'',0);
 
 exit unless open SRC,"<$target";
-sysread SRC,$source,$srclen = (-s SRC);
+sysread SRC,$source,(-s SRC);
 close SRC;
+
+$source =~ s/^\#\![^\r\n]+\s*//;
+$srclen = length $source;
 
 my $tmpsrc = $target;
 $tmpsrc =~ s/\.([0-9a-zA-Z]+)$//i;

@@ -8,7 +8,7 @@ our @ISA       = qw(Exporter);
 our @EXPORT    = qw(ep);
 our @EXPORT_OK = qw($VERSION $TIMEOUT);
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 our $TIMEOUT = 2;
 
 my $STDBAK = *STDOUT;
@@ -42,7 +42,7 @@ sub ep{
   alarm $TIMEOUT;
   foreach my $tag(split(/(\<\$.+?)\$\>/s,$src)){
     $now = $pos;
-    $pos += $tag =~ s/\r\n|\r|\n/\n/gs;
+    $pos += $tag =~ s/\r\n|[\r\n]/\n/gs;
     if($tag =~ s/^\<\$//){
       if(!run($ref,$var,$tag) && $@){
         my($l,$e) = ($@ =~ /line\x20([0-9]+)(.+)\s+$/);
