@@ -8,7 +8,7 @@ our @ISA       = qw(Exporter);
 our @EXPORT    = qw(ep);
 our @EXPORT_OK = qw($VERSION $TIMEOUT);
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 our $TIMEOUT = 2;
 
 my $STDBAK = *STDOUT;
@@ -86,11 +86,12 @@ HTML::EmbeddedPerl - The Perl embeddings for HTML.
 
 =head1 SYNOPSYS
 
-I<automatic.>
+recommends run on I<automatic>.
 
 =head2 run in the automatically
 
 passing of instanced object B<$epl>.
+that are reference of B<Apache::RequestRec>I<(modperl)> or B<__PACKAGE__>I<(cgi)>
 example of use in the code tags.
 
   # output header ($key,$value)
@@ -100,7 +101,7 @@ example of use in the code tags.
 
 =head2 using in the script
 
-  $htm = I<something>;
+  $htm = something;
 
   use HTML::EmbeddedPerl;
   $e = HTML::EmbeddedPerl->new();
@@ -134,11 +135,13 @@ if you want not use of global variables, please use B<$var>.
 destruct B<$var> after execute.
 but it can use between multiple tags too.
 
-  E<lt>FilesMatchE<quot>.*\.phtml?$E<quot>E<gt>
-  SetHandler B<perl-script>
+  <FilesMatch ".*\.phtml?$">
+  SetHandler perl-script
   PerlResponseHandler HTML::EmbeddedPerl
   PerlOptions +ParseHeaders
-  E<lt>/FilesMatchE<gt>
+  </FilesMatch>
+
+may be had compatible PerlResponceHandler I<modperl>.
 
 =head2 cgi
 
@@ -152,14 +155,14 @@ if you cannot use twepl? but wrapper.pl is available.
 
   AddType application/x-embedded-perl .phtml
   AddHandler application/x-embedded-perl .phtml
-  Action application/x-embedded-perl I</your/path/wrapper>
+  Action application/x-embedded-perl /your/path/wrapper
 
 =head1 TIMEOUT
 
 force exiting over the timeout for loop detection.
 B<$TIMEOUT> is global, please change it overwritten.
 
-  # default is E<quot>2E<quot> seconds.
+  # default is "2" seconds.
   $TIMEOUT = 2;
 
 already executing under alarm, cannot change that timeout.
@@ -171,22 +174,38 @@ already executing under alarm, cannot change that timeout.
 
 =head2 modperl2
 
-  $TIMEOUT = B<X>;
+  $TIMEOUT = X;
   # cancelling timeout and unset timeout.
   alarm(($TIMEOUT=0));
 
 =head2 cgi
 
   # set as new timeout.
-  alarm(B<X>);
+  alarm(X);
 
 =head2 wrapper
 
 before calling sub B<ep()>
 
-  $HTML::EmbeddedPerl::TIMEOUT = B<X>;
+  $HTML::EmbeddedPerl::TIMEOUT = X;
 
 =head1 RESERVED
+
+it simply solving B<cgi>-B<modperl> compatibility.
+
+=head2 Subroutines
+
+for cgi interface.
+other B<Subs> define it freely.
+
+  header_out
+  content_type
+  print
+  flush
+
+for modperl, run in the depends B<Apache::RequestRec> and more.
+
+=head2 Variables
 
   $TIMEOUT(global)
   $epl
@@ -195,5 +214,11 @@ before calling sub B<ep()>
 =head1 AUTHOR
 
 Twinkle Computing <twinkle@cpan.org>
+
+=head1 LISENCE
+
+Copyright (c) 2010 Twinkle Computing All rights reserved.
+
+This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 
 =cut

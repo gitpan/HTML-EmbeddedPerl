@@ -1,5 +1,11 @@
 Revision history for Perl extension HTML::EmbeddedPerl.
 
+0.03  Sun Sep 18 19:19:00 2010
+	fix perlpv bugs.
+
+0.02  Sun Sep 18 19:18:00 2010
+	fix twepl bugs.
+
 0.01  Sun Sep 16 20:20:58 2010
 	- original version; created by h2xs 1.23 with options
 		-XA -n HTML::EmbeddedPerl

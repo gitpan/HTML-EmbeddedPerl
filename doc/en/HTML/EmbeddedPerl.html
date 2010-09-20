@@ -41,7 +41,14 @@
 	</ul>
 
 	<li><a href="#reserved">RESERVED</a></li>
+	<ul>
+
+		<li><a href="#subroutines">Subroutines</a></li>
+		<li><a href="#variables">Variables</a></li>
+	</ul>
+
 	<li><a href="#author">AUTHOR</a></li>
+	<li><a href="#lisence">LISENCE</a></li>
 </ul>
 
 <hr name="index" />
@@ -56,11 +63,12 @@
 </p>
 <hr />
 <h1><a name="synopsys">SYNOPSYS</a></h1>
-<p><em>automatic.</em></p>
+<p>recommends run on <em>automatic</em>.</p>
 <p>
 </p>
 <h2><a name="run_in_the_automatically">run in the automatically</a></h2>
 <p>passing of instanced object <strong>$epl</strong>.
+that are reference of <strong>Apache::RequestRec</strong><em>(modperl)</em> or <strong>__PACKAGE__</strong><em>(cgi)</em>.
 example of use in the code tags.</p>
 <pre>
   # output header ($key,$value)
@@ -71,7 +79,7 @@ example of use in the code tags.</p>
 </p>
 <h2><a name="using_in_the_script">using in the script</a></h2>
 <pre>
-  $htm = I&lt;something&gt;;</pre>
+  $htm = something;</pre>
 <pre>
   use HTML::EmbeddedPerl;
   $e = HTML::EmbeddedPerl-&gt;new();</pre>
@@ -105,11 +113,12 @@ if code blocks too many, cannot use local variables between code blocks.</p>
 destruct <strong>$var</strong> after execute.
 but it can use between multiple tags too.</p>
 <pre>
-  E&lt;lt&gt;FilesMatchE&lt;quot&gt;.*\.phtml?$E&lt;quot&gt;E&lt;gt&gt;
-  SetHandler B&lt;perl-script&gt;
+  &lt;FilesMatch &quot;.*\.phtml?$&quot;&gt;
+  SetHandler perl-script
   PerlResponseHandler HTML::EmbeddedPerl
   PerlOptions +ParseHeaders
-  E&lt;lt&gt;/FilesMatchE&lt;gt&gt;</pre>
+  &lt;/FilesMatch&gt;</pre>
+<p>may be had compatible PerlResponceHandler <em>modperl</em>.</p>
 <p>
 </p>
 <h2><a name="cgi">cgi</a></h2>
@@ -123,7 +132,7 @@ but it can use between multiple tags too.</p>
 <pre>
   AddType application/x-embedded-perl .phtml
   AddHandler application/x-embedded-perl .phtml
-  Action application/x-embedded-perl I&lt;/your/path/wrapper&gt;</pre>
+  Action application/x-embedded-perl /your/path/wrapper</pre>
 <p>
 </p>
 <hr />
@@ -131,7 +140,7 @@ but it can use between multiple tags too.</p>
 <p>force exiting over the timeout for loop detection.
 <strong>$TIMEOUT</strong> is global, please change it overwritten.</p>
 <pre>
-  # default is E&lt;quot&gt;2E&lt;quot&gt; seconds.
+  # default is &quot;2&quot; seconds.
   $TIMEOUT = 2;</pre>
 <p>already executing under alarm, cannot change that timeout.</p>
 <pre>
@@ -143,7 +152,7 @@ but it can use between multiple tags too.</p>
 </p>
 <h2><a name="modperl2">modperl2</a></h2>
 <pre>
-  $TIMEOUT = B&lt;X&gt;;
+  $TIMEOUT = X;
   # cancelling timeout and unset timeout.
   alarm(($TIMEOUT=0));</pre>
 <p>
@@ -151,17 +160,32 @@ but it can use between multiple tags too.</p>
 <h2><a name="cgi">cgi</a></h2>
 <pre>
   # set as new timeout.
-  alarm(B&lt;X&gt;);</pre>
+  alarm(X);</pre>
 <p>
 </p>
 <h2><a name="wrapper">wrapper</a></h2>
 <p>before calling sub <strong>ep()</strong></p>
 <pre>
-  $HTML::EmbeddedPerl::TIMEOUT = B&lt;X&gt;;</pre>
+  $HTML::EmbeddedPerl::TIMEOUT = X;</pre>
 <p>
 </p>
 <hr />
 <h1><a name="reserved">RESERVED</a></h1>
+<p>it simply solving <strong>cgi</strong>-<strong>modperl</strong> compatibility.</p>
+<p>
+</p>
+<h2><a name="subroutines">Subroutines</a></h2>
+<p>for cgi interface.
+other <strong>Subs</strong> define it freely.</p>
+<pre>
+  header_out
+  content_type
+  print
+  flush</pre>
+<p>for modperl, run in the depends <strong>Apache::RequestRec</strong> and more.</p>
+<p>
+</p>
+<h2><a name="variables">Variables</a></h2>
 <pre>
   $TIMEOUT(global)
   $epl
@@ -171,6 +195,12 @@ but it can use between multiple tags too.</p>
 <hr />
 <h1><a name="author">AUTHOR</a></h1>
 <p>Twinkle Computing &lt;<a href="mailto:twinkle@cpan.org">twinkle@cpan.org</a>&gt;</p>
+<p>
+</p>
+<hr />
+<h1><a name="lisence">LISENCE</a></h1>
+<p>Copyright (c) 2010 Twinkle Computing All rights reserved.</p>
+<p>This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
 
 </body>
 

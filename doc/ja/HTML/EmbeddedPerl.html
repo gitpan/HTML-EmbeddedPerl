@@ -27,38 +27,49 @@
 	<li><a href="#______">説明</a></li>
 	<ul>
 
-		<li><a href="#mod_perl2">mod_perl2</a></li>
-		<li><a href="#_________________________________________________________">コモン・ゲートウェイ・インターフェイス</a></li>
+		<li><a href="#modperl2">modperl2</a></li>
+		<li><a href="#cgi">cgi</a></li>
 		<li><a href="#____________">ラッパー</a></li>
 	</ul>
 
 	<li><a href="#__________________">タイムアウト</a></li>
 	<ul>
 
-		<li><a href="#mod_perl2">mod_perl2</a></li>
-		<li><a href="#_________________________________________________________">コモン・ゲートウェイ・インターフェイス</a></li>
+		<li><a href="#modperl2">modperl2</a></li>
+		<li><a href="#cgi">cgi</a></li>
 		<li><a href="#____________">ラッパー</a></li>
 	</ul>
 
-	<li><a href="#__________________">予約済み変数</a></li>
-	<li><a href="#______">著者</a></li>
+	<li><a href="#____________">予約済み</a></li>
+	<ul>
+
+		<li><a href="#__________________">サブルーチン</a></li>
+		<li><a href="#______">変数</a></li>
+	</ul>
+
+	<li><a href="#______">作者</a></li>
+	<li><a href="#_______________">ライセンス</a></li>
 </ul>
 
 <hr name="index" />
 </div>
 <!-- INDEX END -->
 
+<p>
+</p>
+<hr />
 <h1><a name="______">名前</a></h1>
 <p>HTML::EmbeddedPerl - (主に)HTMLへのPerlコード埋め込み</p>
 <p>
 </p>
 <hr />
 <h1><a name="______">概要</a></h1>
-<p><em>自動です</em></p>
+<p><em>自動</em> での実行が推奨されます。</p>
 <p>
 </p>
 <h2><a name="_________________________________">自動的に実行されている</a></h2>
-<p>インスタンス化されたオブジェクト <strong>$epl</strong> が渡される。
+<p>インスタンス化されたオブジェクト <strong>$epl</strong> が渡されます。
+それは <strong>Apache::RequestRec</strong><em>(modperl)</em> か <strong>__PACKAGE__</strong><em>(cgi)</em> のリファレンスです。
 コードタグ内で使う例。</p>
 <pre>
   # output header ($key,$value)
@@ -69,7 +80,7 @@
 </p>
 <h2><a name="____________________________________">スクリプト内における使用</a></h2>
 <pre>
-  $htm = I&lt;何か&gt;;</pre>
+  $htm = 何か;</pre>
 <pre>
   use HTML::EmbeddedPerl;
   $e = HTML::EmbeddedPerl-&gt;new();</pre>
@@ -95,33 +106,34 @@
 <h1><a name="______">説明</a></h1>
 <p>(主に)HTMLのためのPerlコード埋め込み、それは簡素で容易です。</p>
 <p><em>&lt;$ Perl-Code $&gt;</em> をHTMLへ追加します。
-またコードブロックが多数あれば、コードブロック間で局所化された変数は使用できません。</p>
+またコードブロックが多数あれば、それらコードブロック間で局所化された変数は使用できません。</p>
 <p>
 </p>
-<h2><a name="mod_perl2">mod_perl2</a></h2>
+<h2><a name="modperl2">modperl2</a></h2>
 <p>グローバル変数使いたくないのであれば <strong>$var</strong> を使用してください。
 <strong>$var</strong> は実行後に破棄されます。
 しかしそれは複数タグの間においても使用することができます。</p>
 <pre>
-  E&lt;lt&gt;FilesMatchE&lt;quot&gt;.*\.phtml?$E&lt;quot&gt;E&lt;gt&gt;
-  SetHandler B&lt;perl-script&gt;
+  &lt;FilesMatch &quot;.*\.phtml?$&quot;&gt;
+  SetHandler perl-script
   PerlResponseHandler HTML::EmbeddedPerl
   PerlOptions +ParseHeaders
-  E&lt;lt&gt;/FilesMatchE&lt;gt&gt;</pre>
+  &lt;/FilesMatch&gt;</pre>
+<p>たぶん PerlResponceHandler <em>modperl</em> にも対応します。</p>
 <p>
 </p>
-<h2><a name="_________________________________________________________">コモン・ゲートウェイ・インターフェイス</a></h2>
-<p>最初の行へと挿入します。</p>
+<h2><a name="cgi">cgi</a></h2>
+<p>最初の行へ挿入します。</p>
 <pre>
   #!/あなたの/パス/twepl</pre>
 <p>
 </p>
 <h2><a name="____________">ラッパー</a></h2>
-<p>tweplを使うことができない？ しかし wrapper.pl を利用することができます。</p>
+<p>tweplを使うことができませんか？ しかし wrapper.pl を利用することができます。</p>
 <pre>
   AddType application/x-embedded-perl .phtml
   AddHandler application/x-embedded-perl .phtml
-  Action application/x-embedded-perl I&lt;/your/path/wrapper&gt;</pre>
+  Action application/x-embedded-perl /your/path/wrapper</pre>
 <p>
 </p>
 <hr />
@@ -129,9 +141,9 @@
 <p>ループ検知のためのタイムアウトを超えると強制終了します。
 必要ならグローバル変数 <strong>$TIMEOUT</strong> を上書きして変更してください。</p>
 <pre>
-  # 初期設定は E&lt;quot&gt;2E&lt;quot&gt; 秒です
+  # 初期設定は &quot;2&quot; 秒です
   $TIMEOUT = 2;</pre>
-<p>alarm の下で既に実行されて、そのタイムアウトの変更はできません。</p>
+<p>alarm の下で既に実行され、そのタイムアウトの変更はできません。</p>
 <pre>
   # 新規タイムアウトとして
   alarm($TIMEOUT);
@@ -139,27 +151,42 @@
   alarm(0);</pre>
 <p>
 </p>
-<h2><a name="mod_perl2">mod_perl2</a></h2>
+<h2><a name="modperl2">modperl2</a></h2>
 <pre>
-  $TIMEOUT = B&lt;X&gt;;
+  $TIMEOUT = X;
   # タイムアウトを取り消しタイムアウトを未設定とする
   alarm(($TIMEOUT=0));</pre>
 <p>
 </p>
-<h2><a name="_________________________________________________________">コモン・ゲートウェイ・インターフェイス</a></h2>
+<h2><a name="cgi">cgi</a></h2>
 <pre>
   # 新規タイムアウトとして
-  alarm(B&lt;X&gt;);</pre>
+  alarm(X);</pre>
 <p>
 </p>
 <h2><a name="____________">ラッパー</a></h2>
 <p>サブルーチン <strong>ep()</strong> を呼ぶ前に</p>
 <pre>
-  $HTML::EmbeddedPerl::TIMEOUT = B&lt;X&gt;;</pre>
+  $HTML::EmbeddedPerl::TIMEOUT = X;</pre>
 <p>
 </p>
 <hr />
-<h1><a name="__________________">予約済み変数</a></h1>
+<h1><a name="____________">予約済み</a></h1>
+<p>これは単純に <strong>cgi</strong>-<strong>modperl</strong> 間の互換性を解決しています。</p>
+<p>
+</p>
+<h2><a name="__________________">サブルーチン</a></h2>
+<p>CGIでの利用のために。
+他のサブルーチンの定義は自由です。</p>
+<pre>
+  header_out
+  content_type
+  print
+  flush</pre>
+<p>modperl下の実行においては <strong>Apache::RequestRec</strong> 等に依存します。</p>
+<p>
+</p>
+<h2><a name="______">変数</a></h2>
 <pre>
   $TIMEOUT(グローバル)
   $epl
@@ -167,8 +194,14 @@
 <p>
 </p>
 <hr />
-<h1><a name="______">著者</a></h1>
+<h1><a name="______">作者</a></h1>
 <p>トゥインクル・コンピューティング &lt;<a href="mailto:twinkle@cpan.org">twinkle@cpan.org</a>&gt;</p>
+<p>
+</p>
+<hr />
+<h1><a name="_______________">ライセンス</a></h1>
+<p>Copyright (c) 2010 Twinkle Computing All rights reserved.</p>
+<p>This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
 
 </body>
 
