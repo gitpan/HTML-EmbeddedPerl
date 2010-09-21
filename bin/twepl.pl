@@ -2,7 +2,7 @@
 package twepl;
 use strict;
 use warnings;
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 our $TIMEOUT = 2;
 local $SIG{ALRM} = sub{ die 'Force exiting, detected loop'; };
 my $STDBAK = *STDOUT;
@@ -29,12 +29,14 @@ $now = $pos;
 $pos += $tag =~ s/\r\n|\r|\n/\n/gs;
 if($tag =~ s/^\<\$//){
 if(!run($ref,$var,$tag) && $@){
-my($l,$e) = ($@ =~ /line\x20([0-9]+)(.+)\s+$/);
-$l = $now + ($l - 1); chop $@;
-$@ =~ /^Force/ ? $@ =~ s/at\x20.+$/at\x20line\x20$now\x20or\x20after\x20that./ : $@ =~ s/at\x20\(.+$/at\x20line\x20$l$e/;
-$@ =~ s/\x22/\&quot\;/g;
+$@ =~ /^Force/ ? $@ =~ s/at\x20.+$/at\x20line\x20$now\x20or\x20after\x20that\./ : $@ =~ s/at\x20\(eval\x20[0-9]+\)\x20line\x20([0-9]+)/'at line '.($now+($1-1))/eg;
+$@ =~ s/\x22/\&quot\;/g; chop $@;
 $tmp .= qq[\n<blockquote style="padding:4px;color:#c00;background-color:#fdd;border:solid 1px #f99;font-size:80%;"><span style="font-weight:bold;">ERROR:</span> $@</blockquote>\n];
 last;
 }
-} else{ $tmp .= $tag; }
+} else{
+$tag =~ s/(?<![\\\$])(\$((::)?\w+|\[[\x22\x27]?\w+[\x22\x27]?\]|(->)?\{[\x22\x27]?\w+[\x22\x27]?\})+)/eval($1).(($@)?$1:'')/eg;
+$tag =~ s/\\\$/\$/g;
+$tmp .= $tag;
+}
 }; close TMP; *STDOUT = $STDBAK; flush $ref; print $tmp;

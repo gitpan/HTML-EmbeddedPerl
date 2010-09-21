@@ -84,7 +84,11 @@ close TMP;
 
 my $INCLUDE = "-I$Config{installarchlib}/CORE";
 my $LIBPATH = "-L$Config{installarchlib}/CORE";
+my $LINKLIB = $Config{libperl};
 
-`$Config{cc} -O3 -o $output $tmpsrc -lperl $INCLUDE $LIBPATH`;
+$LINKLIB =~ s/^lib//;
+$LINKLIB =~ s/\.(so|dll)$//;
+
+`$Config{cc} -O3 -o $output $tmpsrc -l$LINKLIB $INCLUDE $LIBPATH`;
 
 unlink $tmpsrc;

@@ -1,13 +1,17 @@
 Revision history for Perl extension HTML::EmbeddedPerl.
 
-0.04  Sun Sep 30 19:22:00 2010
-	fix perlpv bugs.
+0.05  Sun Sep 22 19:00:00 2010
+	fix /bin/Makefile.PL. (BSD make $^ issue)
+	fix perlpv bugs. (looking changes $Config{libperl})
+
+0.04  Sun Sep 20 19:22:00 2010
+	fix perlpv bugs. (forgot escape)
 
 0.03  Sun Sep 18 19:19:00 2010
-	fix perlpv bugs.
+	fix perlpv bugs. (forgot malloc)
 
 0.02  Sun Sep 18 19:18:00 2010
-	fix twepl bugs.
+	fix twepl bugs. (different error lines)
 
 0.01  Sun Sep 16 20:20:58 2010
 	- original version; created by h2xs 1.23 with options

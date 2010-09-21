@@ -8,7 +8,7 @@ our @ISA       = qw(Exporter);
 our @EXPORT    = qw(ep);
 our @EXPORT_OK = qw($VERSION $TIMEOUT);
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 our $TIMEOUT = 2;
 
 my $STDBAK = *STDOUT;
@@ -45,14 +45,16 @@ sub ep{
     $pos += $tag =~ s/\r\n|[\r\n]/\n/gs;
     if($tag =~ s/^\<\$//){
       if(!run($ref,$var,$tag) && $@){
-        my($l,$e) = ($@ =~ /line\x20([0-9]+)(.+)\s+$/);
-        $l = $now + ($l - 1); chop $@;
-        $@ =~ /^Force/ ? $@ =~ s/at\x20.+$/at\x20line\x20$now\x20or\x20after\x20that./ : $@ =~ s/at\x20\(.+$/at\x20line\x20$l$e/;
-        $@ =~ s/\x22/\&quot\;/g;
+        $@ =~ /^Force/ ? $@ =~ s/at\x20.+$/at\x20line\x20$now\x20or\x20after\x20that\./ : $@ =~ s/at\x20\(eval\x20[0-9]+\)\x20line\x20([0-9]+)/'at line '.($now+($1-1))/eg;
+        $@ =~ s/\x22/\&quot\;/g; chop $@;
         $tmp .= qq[\n<blockquote style="padding:4px;color:#c00;background-color:#fdd;border:solid 1px #f99;font-size:80%;"><span style="font-weight:bold;">ERROR:</span> $@</blockquote>\n];
         last;
       }
-    } else{ $tmp .= $tag; }
+    } else{
+      $tag =~ s/(?<![\\\$])(\$((::)?\w+|\[[\x22\x27]?\w+[\x22\x27]?\]|(->)?\{[\x22\x27]?\w+[\x22\x27]?\})+)/eval($1).(($@)?$1:'')/eg;
+      $tag =~ s/\\\$/\$/g;
+      $tmp .= $tag;
+    }
   }
   close TMP;
   *STDOUT = $STDBAK;
@@ -91,7 +93,7 @@ recommends run on I<automatic>.
 =head2 run in the automatically
 
 passing of instanced object B<$epl>.
-that are reference of B<Apache::RequestRec>I<(modperl)> or B<__PACKAGE__>I<(cgi)>
+that are reference of B<Apache::RequestRec>I<(modperl)> or B<__PACKAGE__>I<(cgi)>.
 example of use in the code tags.
 
   # output header ($key,$value)
@@ -136,12 +138,12 @@ destruct B<$var> after execute.
 but it can use between multiple tags too.
 
   <FilesMatch ".*\.phtml?$">
-  SetHandler perl-script
+  SetHandler modperl
   PerlResponseHandler HTML::EmbeddedPerl
   PerlOptions +ParseHeaders
   </FilesMatch>
 
-may be had compatible PerlResponceHandler I<modperl>.
+for most compatibility, use I<PerlResponseHandler perl-script>.
 
 =head2 cgi
 
@@ -189,11 +191,21 @@ before calling sub B<ep()>
 
   $HTML::EmbeddedPerl::TIMEOUT = X;
 
+=head1 BETA Features
+
+replace variables on non-code blocks. I<(not a reference) scalar> only.
+
 =head1 RESERVED
 
-it simply solving B<cgi>-B<modperl> compatibility.
+it tiny-tiny solving B<cgi>-B<modperl> compatibility.
 
 =head2 Subroutines
+
+base.
+
+  ep
+  handler
+  new
 
 for cgi interface.
 other B<Subs> define it freely.

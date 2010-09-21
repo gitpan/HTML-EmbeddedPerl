@@ -40,6 +40,7 @@
 		<li><a href="#wrapper">wrapper</a></li>
 	</ul>
 
+	<li><a href="#beta_features">BETA Features</a></li>
 	<li><a href="#reserved">RESERVED</a></li>
 	<ul>
 
@@ -114,11 +115,11 @@ destruct <strong>$var</strong> after execute.
 but it can use between multiple tags too.</p>
 <pre>
   &lt;FilesMatch &quot;.*\.phtml?$&quot;&gt;
-  SetHandler perl-script
+  SetHandler modperl
   PerlResponseHandler HTML::EmbeddedPerl
   PerlOptions +ParseHeaders
   &lt;/FilesMatch&gt;</pre>
-<p>may be had compatible PerlResponceHandler <em>modperl</em>.</p>
+<p>for most compatibility, use <em>PerlResponseHandler perl-script</em>.</p>
 <p>
 </p>
 <h2><a name="cgi">cgi</a></h2>
@@ -170,11 +171,21 @@ but it can use between multiple tags too.</p>
 <p>
 </p>
 <hr />
+<h1><a name="beta_features">BETA Features</a></h1>
+<p>replace variables on non-code blocks. <em>(not a reference) scalar</em> only.</p>
+<p>
+</p>
+<hr />
 <h1><a name="reserved">RESERVED</a></h1>
-<p>it simply solving <strong>cgi</strong>-<strong>modperl</strong> compatibility.</p>
+<p>it tiny-tiny solving <strong>cgi</strong>-<strong>modperl</strong> compatibility.</p>
 <p>
 </p>
 <h2><a name="subroutines">Subroutines</a></h2>
+<p>base.</p>
+<pre>
+  ep
+  handler
+  new</pre>
 <p>for cgi interface.
 other <strong>Subs</strong> define it freely.</p>
 <pre>
