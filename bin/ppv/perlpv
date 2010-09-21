@@ -82,13 +82,10 @@ int main(int argc,char **argv,char **envp){
 __END_OF_FUNCTION__
 close TMP;
 
-my $INCLUDE = "-I$Config{installarchlib}/CORE";
-my $LIBPATH = "-L$Config{installarchlib}/CORE";
-my $LINKLIB = $Config{libperl};
+my $OPTIMIZ = $Config{optimize};
+my $CCFLAGS = ExtUtils::Embed::ccopts;
+my $LDFLAGS = ExtUtils::Embed::ldopts;
 
-$LINKLIB =~ s/^lib//;
-$LINKLIB =~ s/\.(so|dll)$//;
-
-`$Config{cc} -O3 -o $output $tmpsrc -l$LINKLIB $INCLUDE $LIBPATH`;
+`$Config{cc} $OPTIMIZ -o $output $tmpsrc $CCFLAGS $LDFLAGS`;
 
 unlink $tmpsrc;

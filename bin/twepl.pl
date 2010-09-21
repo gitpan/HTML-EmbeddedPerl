@@ -2,7 +2,7 @@
 package twepl;
 use strict;
 use warnings;
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 our $TIMEOUT = 2;
 local $SIG{ALRM} = sub{ die 'Force exiting, detected loop'; };
 my $STDBAK = *STDOUT;
