@@ -1,6 +1,12 @@
 HTML-EmbeddedPerl version 0.01
 ===================================
 
+Debian and Debian-Based Distribution
+
+libperl-dev is necessary type the following:
+
+   apt-get install libperl-dev
+
 INSTALLATION
 
 To install this module type the following:

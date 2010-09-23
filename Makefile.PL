@@ -1,8 +1,12 @@
+use Config;
 use ExtUtils::MakeMaker;
 WriteMakefile(
-  NAME         => 'HTML::EmbeddedPerl',
-  AUTHOR       => 'Twinkle Computing <twinkle@cpan.org>',
-  VERSION_FROM => 'lib/HTML/EmbeddedPerl.pm',
-  EXE_FILES    => ['bin/twepl'],
-  MAN1PODS     => {'pod/en/twepl.pod'=>'blib/man1/twepl.1'},
+  NAME          => 'HTML::EmbeddedPerl',
+  ABSTRACT_FROM => 'lib/HTML/EmbeddedPerl.pm',
+  AUTHOR        => 'Twinkle Computing <twinkle@cpan.org>',
+  LICENSE       => 'perl',
+  VERSION_FROM  => 'lib/HTML/EmbeddedPerl.pm',
+  INST_SCRIPT   => 'blib/bin',
+  EXE_FILES     => ["bin/twepl$Config{_exe}"],
+  MAN1PODS      => {'pod/en/twepl.pod'=>'blib/man1/twepl.1'},
 );

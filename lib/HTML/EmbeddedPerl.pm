@@ -8,19 +8,26 @@ our @ISA       = qw(Exporter);
 our @EXPORT    = qw(ep);
 our @EXPORT_OK = qw($VERSION $TIMEOUT);
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 our $TIMEOUT = 2;
 
 my $STDBAK = *STDOUT;
 
 sub header_out{
-  $_[0]->{head} .= "$_[1]: $_[2]\r\n";
+  my $f = 0; for(my $i=0;$i<@{$_[0]->{head}};$i++){
+    my($k,$v) = split /\: /,@{$_[0]->{head}}[$i],2;
+    if($k eq $_[1]){
+      @{$_[0]->{head}}[$i] = "$k: $_[2]" if($v ne $_[2]);
+      $f++; last;
+    }
+  }
+  push(@{$_[0]->{head}},"$_[1]: $_[2]") if(!$f);
 }
 sub content_type{
   $_[0]->{type} = $_[1];
 }
 sub flush{
-  print $STDBAK "$_[0]->{head}Content-Type: $_[0]->{type}\r\n\r\n";
+  print $STDBAK join("\r\n",@{$_[0]->{head}})."\r\nContent-Type: $_[0]->{type}\r\n\r\n";
 }
 sub print{
   shift; CORE::print @_;
@@ -76,7 +83,7 @@ sub handler{
 sub new{
   my $s = bless {},shift;
   $s->{type} = 'text/html';
-  $s->{head} = '';
+  $s->{head} = [];
   $s;
 }
 

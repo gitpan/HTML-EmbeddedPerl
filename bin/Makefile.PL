@@ -1,6 +1,6 @@
 use Config;
 
-our $suf = $^O =~ /win/ ? '.exe' : '';
+our $suf = $Config{_exe};
 
   open MKF,'>Makefile';
   flock MKF,2;
@@ -12,7 +12,6 @@ all: twepl$suf
 
 twepl$suf: twepl.pl
 	$Config{perlpath} \$(PERLPV) twepl.pl
-	strip twepl$suf
 test:
 	$Config{perlpath} t/EmbeddedPerl.t
 install: all

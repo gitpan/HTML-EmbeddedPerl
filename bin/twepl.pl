@@ -2,19 +2,29 @@
 package twepl;
 use strict;
 use warnings;
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 our $TIMEOUT = 2;
 local $SIG{ALRM} = sub{ die 'Force exiting, detected loop'; };
 my $STDBAK = *STDOUT;
-sub header_out{ $_[0]->{h} .= "$_[1]: $_[2]\r\n"; }
-sub content_type{ $_[0]->{t} = $_[1]; }
-sub flush{ print $STDBAK "$_[0]->{h}Content-Type: $_[0]->{t}\r\n\r\n"; }
+sub her_out{
+my $f = 0; for(my $i=0;$i<@{$_[0]->{h}};$i++){
+my($k,$v) = split /\: /,@{$_[0]->{h}}[$i],2;
+if($k eq $_[1]){
+@{$_[0]->{h}}[$i] = "$k: $_[2]" if($v ne $_[2]);
+$f++; last;
+}
+}
+push(@{$_[0]->{h}},"$_[1]: $_[2]") if(!$f);
+}
+sub content_type{ $_[0]->{type} = $_[1]; }
+sub flush{ print $STDBAK join("\r\n",@{$_[0]->{h}})."\r\nContent-Type: $_[0]->{t}\r\n\r\n"; }
 sub print{ shift; CORE::print @_; }
 sub run{ my($epl,$var) = (shift,shift); return eval shift; }
 my $var = bless {},__PACKAGE__.'::Vars';
 my $ref = bless {};
 $ref->{t} = 'text/html';
-my $src = $ref->{h} = '';
+$ref->{h} = [];
+my $src = '';
 exit unless open S,@ARGV ? shift @ARGV : exit;
 sysread S,$src,(-s S);
 close S;

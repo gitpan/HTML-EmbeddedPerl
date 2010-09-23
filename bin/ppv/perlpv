@@ -18,7 +18,8 @@ $srclen = length $source;
 
 my $tmpsrc = $target;
 $tmpsrc =~ s/\.([0-9a-zA-Z]+)$//i;
-my $output = ($^O =~ /win/i)? "$tmpsrc.exe" : $tmpsrc;
+my $tmpobj = $tmpsrc.$Config{_o};
+my $output = $tmpsrc.$Config{_exe};
 $tmpsrc .= '.c';
 
 exit unless open TMP,">$tmpsrc";
@@ -86,6 +87,15 @@ my $OPTIMIZ = $Config{optimize};
 my $CCFLAGS = ExtUtils::Embed::ccopts;
 my $LDFLAGS = ExtUtils::Embed::ldopts;
 
-`$Config{cc} $OPTIMIZ -o $output $tmpsrc $CCFLAGS $LDFLAGS`;
+# MSVC
+if($Config{cc} eq 'cl'){
+  `$Config{cc} $tmpsrc $CCFLAGS`;
+  `$Config{ld} $OPTIMIZ $tmpobj $LDFLAGS`;
+  unlink $tmpobj;
+  unlink glob '*.pdb';
+# GCC
+} else{
+  `$Config{cc} $OPTIMIZ -o $output $tmpsrc $CCFLAGS $LDFLAGS`;
+}
 
 unlink $tmpsrc;
