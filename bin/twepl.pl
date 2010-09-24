@@ -2,11 +2,11 @@
 package twepl;
 use strict;
 use warnings;
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 our $TIMEOUT = 2;
 local $SIG{ALRM} = sub{ die 'Force exiting, detected loop'; };
 my $STDBAK = *STDOUT;
-sub her_out{
+sub header_out{
 my $f = 0; for(my $i=0;$i<@{$_[0]->{h}};$i++){
 my($k,$v) = split /\: /,@{$_[0]->{h}}[$i],2;
 if($k eq $_[1]){

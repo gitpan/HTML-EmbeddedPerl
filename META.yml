@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                HTML-EmbeddedPerl
-version:             0.07
+version:             0.08
 abstract:            The Perl embeddings for HTML.
 license:             perl
 author:              
