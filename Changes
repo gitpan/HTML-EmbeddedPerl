@@ -1,5 +1,8 @@
 Revision history for Perl extension HTML::EmbeddedPerl.
 
+0.09  Sun Sep 24 10:20:00 2010
+	bug-fix: all. (subroutine, flush)
+
 0.08  Sun Sep 24 10:00:00 2010
 	bug-fix: twepl. (mistook replace, header_out was her_out)
 
