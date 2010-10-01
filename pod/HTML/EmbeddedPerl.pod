@@ -1,0 +1,267 @@
+=head1 NAME
+
+HTML::EmbeddedPerl - The Perl embeddings for HTML.
+
+=head1 SYNOPSYS
+
+I<automatic>.
+
+=head2 run in the automatically
+
+passing of instanced object B<$ep>.
+that are reference of B<Apache::RequestRec>I<(modperl)> or B<__PACKAGE__>I<(cgi)>.
+example of use in the code tags.
+
+  # set output header ($key,$value)
+  $ep->header_out('Content-Create','foo');
+  # set of contents type, default is 'text/html', output forcing.
+  $ep->content_type('text/plain');
+
+if you want not use of global variables, please use B<$ev>.
+destruct B<$ev> after execute.
+but it can use between multiple tags too.
+
+=head2 using in the script
+
+  $htm = something;
+
+  use HTML::EmbeddedPerl;
+  $e = HTML::EmbeddedPerl->new();
+
+  # set output header ($key,$value)
+  $e->header_out('Content-Create','foo');
+  # set of contents type, default is 'text/html'
+  $e->content_type('text/plain');
+
+  # flushing header and contents. (example 1)
+  $e->ep(\$htm);
+
+  # not flushing header, return contents to $r.
+  $r = $e->ep(\$htm);
+
+  # flushing HTTP header.
+  $e->flush;
+  # same above. (example 1)
+  print $r;
+
+=head1 DESCRIPTION
+
+The Perl-Code embeddings for HTML, it is simple and easy.
+
+adding I<E<lt>$ Perl-Code $E<gt>> to your HTML.
+
+=head2 mod_perl2
+
+write B<httpd.conf> or B<.htaccess>.
+
+  <FilesMatch ".*\.phtml?$">
+  # Output Mode - 0..5, see OPTIONS section.
+  PerlSetEnv OUTMODE 0
+  SetHandler modperl
+  PerlResponseHandler HTML::EmbeddedPerl
+  PerlOptions +ParseHeaders
+  </FilesMatch>
+
+needs most compatibility, use I<PerlResponseHandler perl-script>.
+
+=head2 CGI
+
+inserting first line to
+
+  #!/your/path/twepl
+
+=head2 Wrapper
+
+if you cannot use twepl? but wrapper.pl is available.
+write B<.htaccess>.
+
+  AddType application/x-embedded-perl .phtml
+  AddHandler application/x-embedded-perl .phtml
+  Action application/x-embedded-perl /your/path/wrapper
+
+=head1 TIMEOUT
+
+force exiting over the timeout for loop detection.
+B<$TIMEOUT> is global, please change it overwritten.
+
+  # default is "2" seconds.
+  $TIMEOUT = 2;
+
+already executing under alarm, cannot change that timeout.
+
+  # set as new timeout.
+  alarm(X);
+  # cancelling timeout.
+  alarm(0);
+
+=head2 mod_perl2
+
+  # set as new timeout.
+  alarm(($TIMEOUT=X));
+  # cancelling timeout and unset timeout.
+  alarm(($TIMEOUT=0));
+
+=head2 CGI
+
+  # set as new timeout.
+  alarm(X);
+
+=head2 Wrapper
+
+before calling sub B<ep()>
+
+  $HTML::EmbeddedPerl::TIMEOUT = X;
+
+=head1 INTERNAL METHODS
+
+  _coloring
+  _extract_hash
+  _extract_array
+  _init
+  _run
+
+  handler
+
+=head1 BASIC METHODS
+
+=head2 ep
+
+  ep($string,$option);
+
+=head2 new
+
+  $ep = HTML::EmbeddedPerl->new();
+
+=head2 flush
+
+flushing HTTP header.
+
+  $ep->flush;
+
+=head1 COMPATIBLE METHODS
+
+it tiny-tiny solving B<cgi>-B<modperl> compatibility methods.
+use that $ep->B<method> I<*inner code tags only>.
+
+=head2 header_out
+
+  $ep->header_out($key,$val);
+
+=head2 content_type
+
+  $ep->content-type($type);
+
+=head2 print
+
+  $ep->print($string);
+
+=head1 OTHER METHODS
+
+other methods define it freely.
+
+=head2 mod_perl2
+
+depends B<Apache::RequestRec> and more.
+
+=head1 EXPORTS
+
+ep(B<string>,B<option>)
+
+=head1 OPTIONS
+
+B<0> = default, execute only once.
+B<1> =  I<-- with coloring source>.
+B<2> = older version compatible, every tags every execute.
+B<3> =  I<-- with coloring source>.
+B<4> = output internal code.
+B<5> =  I<-- with coloring source>.
+
+=head1 COMMENTS
+
+B<#> comments
+B<//> comments
+B</*> comments B<*/>
+
+recommended use B</* */> and please do not put comments in the same line as the code if possible.
+
+=head1 BETA Features
+
+case of extract scalar in non-code blocks.
+
+  <$ my $scalar = 'this is scalar'; $>
+  <p>$scalar</p>
+  ...
+  <p>this is scalar</p>
+
+if you want not extract vars, please use escape sequence B<'\'>.
+
+  <p>\$scalar</p>
+  ...
+  <p>$scalar</p>
+
+and available simple template.
+
+=head2 Boolean Expression
+
+<!=B<EXPRESSION>>...</!>
+replace inner B<<!>> to else, <!=B<EXPRESSION>> to elsif.
+
+  <$ my $flag = 1; my $oops = 'oops!'; $>
+  <!=$flag><p>$flag</p><!><p>$oops</p></!>
+  ...
+  <p>1</p>
+
+B<E<gt>> is same a tag-close, try B<($a E<gt> $b)> in compilation errors.
+
+=head2 Extract Array
+
+<@=B<ARRAYNAME>>...</@>, extract value is B<$_>.
+B<ARRAYNAME> can use reference B<{ARRAYNAME}> or B<\ARRAYNAME>.
+
+B<$n> = current array name.
+B<$i> = current position.
+B<$c> = equals scalar @array;
+
+and B<$XXX> = want vars.
+
+  <$ my @array = ('a'..'c'); $>
+  <@=array><p>$i: $_</p>\n</@>
+  ...
+  <p>0: a</p>
+  <p>1: b</p>
+  <p>2: c</p>
+
+=head2 Extract Hash
+
+<%=B<HASHNAME>>...</%>, extract key is B<$k>, value is B<$v>.
+B<HASHNAME> can use reference B<{HASHNAME}> or B<\HASHNAME>.
+
+B<$n> = current hash name.
+B<$c> = equals scalar keys %hash;
+
+and B<$XXX> = want vars.
+
+  <$ my %hash = ('a'=>1,'b'=>2,'c'=>3); $>
+  <table>
+  <%=hash><tr><th>$k</th><td>$v</td></tr>\n</%>
+  </table>
+  ...
+  <table>
+  <tr><th>a</th><td>1</td><tr>
+  <tr><th>b</th><td>2</td><tr>
+  <tr><th>c</th><td>3</td><tr>
+  </table>
+
+=head1 AUTHOR
+
+Twinkle Computing <twinkle@cpan.org>
+
+=head1 COPYRIGHT
+
+Copyright (c) 2010 Twinkle Computing All rights reserved.
+
+=head1 LISENCE
+
+This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
+
+=cut

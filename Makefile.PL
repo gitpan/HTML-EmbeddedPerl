@@ -8,5 +8,5 @@ WriteMakefile(
   VERSION_FROM  => 'lib/HTML/EmbeddedPerl.pm',
   INST_SCRIPT   => 'blib/bin',
   EXE_FILES     => ["bin/twepl$Config{_exe}"],
-  MAN1PODS      => {'pod/en/twepl.pod'=>'blib/man1/twepl.1'},
+  MAN1PODS      => {'pod/twepl.pod'=>'blib/man1/twepl.1'},
 );

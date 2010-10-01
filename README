@@ -1,17 +1,39 @@
-HTML-EmbeddedPerl version 0.01
-===================================
+HTML-EmbeddedPerl version 0.10
+==============================
 
-Debian and Debian-Based Distribution
+OVERVIEW
 
-libperl-dev is necessary type the following:
+The Perl embeddings for HTML.
 
-   apt-get install libperl-dev
+PREREQUISITES
+
+Perl 5.006 or higher.
+(needs perl5 development package)
+
+  debian and debian-based distribution:
+
+    libperl-dev is necessary type the following:
+
+      apt-get install libperl-dev
 
 INSTALLATION
 
 To install this module type the following:
 
-   perl Makefile.PL
-   make
-   make test
-   make install
+    perl Makefile.PL
+    make
+    make test
+    make install
+
+NOTICE
+
+HTML::EmbeddedPerl::Test was deleted, that state is forever.
+this package is including HTML::EmbeddedPerl::Test from this version.
+our wishing HTML::EmbeddedPerl::Test uninstalled too.
+
+COPYRIGHT
+
+  (C) 2010 Twinkle Computing All rights reserved.
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.

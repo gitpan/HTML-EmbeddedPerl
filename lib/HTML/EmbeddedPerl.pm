@@ -1,4 +1,5 @@
 package HTML::EmbeddedPerl;
+
 use strict;
 use warnings;
 
@@ -8,10 +9,104 @@ our @ISA       = qw(Exporter);
 our @EXPORT    = qw(ep);
 our @EXPORT_OK = qw($VERSION $TIMEOUT);
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 our $TIMEOUT = 2;
 
 my $STDBAK = *STDOUT;
+
+sub _coloring{
+  my($e,$c) = ($_[0],$_[1] ? $_[1] : '090');
+  $c =~ s/^\x23//;
+  $e =~ s/^[\r\n]*//g;
+  $e =~ s/[\r\n]*$//g;
+  $e =~ s/\\(?!x22)/\\\\/g;
+  $e =~ s/\$/\\\$/g;
+  $e =~ s/\@/\\\@/g;
+  $e =~ s/\%/\\\%/g;
+  $e =~ s/\&/\&amp;/g;
+  $e =~ s/\x20/\&nbsp;/g;
+  $e =~ s/\</\&lt;/g;
+  $e =~ s/\>/\&gt;/g;
+  $e =~ s/\"/\&quot;/g;
+  $e =~ s/\r\n|[\r\n]/\<br\x20\/\>/g;
+  return qq[\$ep->print("<blockquote style=\\x22color:#$c;\\x22>$e</blockquote>");];
+}
+sub _extract_hash{
+  my($n,$t,$l) = @_;
+  my $r = qq[{ my(\$c,\$n) = (scalar(keys \%].$n.qq[),'$n'); foreach my \$k(keys \%].$n.qq[){ my \$v = \$].$n.qq[{\$k}; \$ep->print("$t"); }};];
+  $r = qq["); $r \$ep->print("] if $l;
+  return $r;
+}
+sub _extract_array{
+  my($n,$t,$l) = @_;
+  my $r = qq[{ my(\$c,\$n) = (scalar(\@$n),'$n'); for(my \$i=0;\$i<\@$n;\$i++){ \$_ = \$].$n.qq[[\$i]; \$ep->print("$t"); }};];
+  $r = qq["); $r \$ep->print("] if $l;
+  return $r;
+}
+sub _extract_bool{
+  my($x,$t,$l) = @_;
+  my $r = qq[{ if($x){ \$ep->print("$t") }};];
+  $r =~ s/\<\!\=([^\>]+)\>/"); } elsif($1) { \$ep->print("/gs;
+  $r =~ s/\<\!\>/"); } else { \$ep->print("/s;
+  $r = qq["); $r \$ep->print("] if $l;
+  return $r;
+}
+sub _extract_tags{
+  my($i,$f,$l,@o) = (shift,shift,shift);
+  foreach my $t(split(/(\<([\@\%\!])\=(?:\([^\)]+\)|[^\>]+)\>.+?\<\/\2\>)/s,$i)){
+    $t =~ s/\x22/\\\\x22/g;
+    if($t =~ /^[\%\@\!]$/){
+      next;
+    } elsif($t =~ s/\<\/\%\>$// && $t =~ s/^\<\%\=([^\>]+)\>//){
+      my $n = $1;
+      $t =~ s/\r/\\r/g;
+      $t =~ s/\n/\\n/g;
+      push(@o,_coloring("<\%=$n>$t</\%>",'c0c')) if ! $l && $f % 2;
+      $t = _extract_tags($t,$f,1) if $t =~ /\<([\@\%\!])\=(?:\([^\)]+\)|[^\>]+)\>.+\<\/\1\>/;
+      $n =~ s/^\{(\w+)\}$/{\$$1}/;
+      $n =~ s/^\\(\w+)$/{\$$1}/;
+      push(@o,_extract_hash($n,$t,$l));
+    } elsif($t =~ s/\<\/\@\>$// && $t =~ s/^\<\@\=([^\>]+)\>//){
+      my $n = $1;
+      $t =~ s/\r/\\r/g;
+      $t =~ s/\n/\\n/g;
+      push(@o,_coloring("<\@\=$n>$t</\@>",'c00')) if ! $l && $f % 2;
+      $t = _extract_tags($t,$f,1) if $t =~ /\<([\@\%\!])\=(?:\([^\)]+\)|[^\>]+)\>.+\<\/\1\>/;
+      $n =~ s/^\{(\w+)\}$/{\$$1}/;
+      $n =~ s/^\\(\w+)$/{\$$1}/;
+      push(@o,_extract_array($n,$t,$l));
+    } elsif($t =~ s/\<\/\!\>$// && $t =~ s/^\<\!\=(\([^\)]+\)|[^\>]+)\>//){
+      my $x = $1;
+      push(@o,_coloring("<\!=$x>$t</\!>",'00c')) if ! $l && $f % 2;
+      $t =~ s/\r/\\r/g;
+      $t =~ s/\n/\\n/g;
+      $t = _extract_tags($t,$f,1) if $t =~ /\<([\@\%\!])\=(?:\([^\)]+\)|[^\>]+)\>.+\<\/\1\>/;
+      push(@o,_extract_bool($x,$t,$l));
+    } else{
+      push(@o,_coloring($t,'999')) if ! $l && $f % 2;
+      push(@o,$l ? $t : qq[\$ep->print("$t");]);
+    }
+  }
+  return wantarray ? @o : join '',@o;
+}
+sub _init{
+  my($i,$f,@o) = (ref $_[0] ? ${$_[0]} : $_[0],$_[1]);
+  my($d);
+  foreach my $t(split(/(\<\$.+?\$\>)/s,$i)){
+    if($t =~ s/^\<\$// && $t =~ s/\$\>$//m){
+      $t =~ s/(?<!\$ep\-\>)([\s\;])print\s*(?:[\$\*\w]*(?:\(\))?)\s*(?<!\<\<)(q[qw]?)?([\(\[\{]?)(.)(.+?)(\4)([\)\]\}])?(\;?)/$1\$ep\-\>print($2$3$4$5$6$7)$8/gs if exists $ENV{MOD_PERL};
+      push(@o,_coloring($t)) if $f % 2;
+      $t =~ s/\x20*\/\*.*?\*\/\x20*//gs;
+      $t =~ s/(((?:qq?).|[\x22\x27\(\)\[\]\{\}]).*)[\x20]+?(\x23|\/\/).*(?!\1).*/$1/g;
+      push(@o,$t);
+    } else{
+      $t =~ s/\x22/\\x22/g;
+      $t = _extract_tags($t,$f,0);
+      push(@o,$t);
+    }
+  }
+  return wantarray ? @o : join '',@o;
+}
 
 sub header_out{
   my $f = 0; for(my $i=0;$i<@{$_[0]->{head}};$i++){
@@ -30,39 +125,54 @@ sub flush{
   print $STDBAK (@{$_[0]->{head}} ? join("\r\n",@{$_[0]->{head}})."\r\n":'')."Content-Type: $_[0]->{type}\r\n\r\n";
 }
 sub print{
-  shift; CORE::print @_;
+  shift if ref $_[0] eq __PACKAGE__; CORE::print @_;
 }
-sub run{
-  my($epl,$var) = (shift,shift);
-  return eval shift;
+
+sub _run{
+  my($ep,$ev) = (shift,shift); return eval shift;
 }
 
 sub ep{
   my $pkg = __PACKAGE__;
-  my $ref = ref $_[0] ? shift : $pkg->new();
-  my $src = ref $_[0] ? ${$_[0]} : $_[0];
+  my $ref = (ref $_[0] && ref($_[0]) =~ /^(Apa|$pkg)/i)? shift : $pkg->new();
+  my $flg = $_[1] ? $_[1] : 0;
+  my @src = _init((ref $_[0] ? ${$_[0]} : $_[0]),$flg);
+  my $tmp = '';
   my $var = bless {},$pkg.'::Vars';
-  my($pos,$now,$tmp) = (1,0,'');
   open TMP,'>>',\$tmp;
   *STDOUT = *TMP;
-  local $SIG{ALRM} = sub{ die 'Forced exiting, detected loop'; };
-  alarm $TIMEOUT;
-  foreach my $tag(split(/(\<\$.+?)\$\>/s,$src)){
-    $now = $pos;
-    $pos += $tag =~ s/\r\n|[\r\n]/\n/gs;
-    if($tag =~ s/^\<\$//){
-      if(!run($ref,$var,$tag) && $@){
-        $@ =~ /^Force/ ? $@ =~ s/at\x20.+$/at\x20line\x20$now\x20or\x20after\x20that\./ : $@ =~ s/at\x20\(eval\x20[0-9]+\)\x20line\x20([0-9]+)/'at line '.($now+($1-1))/eg;
+  $flg > 3 ? do {
+    $ref->content_type('text/plain');
+    $tmp .= '<$'.join('',@src)."\$>\n";
+  } : $flg > 1 ? do {
+    local $SIG{ALRM} = sub{ die 'Forced exiting, detected loop'; };
+    alarm $TIMEOUT;
+    my($pos,$now) = (1,0);
+    foreach my $epl(@src){
+      $now = $pos;
+      $pos += $epl =~ s/\r\n|[\r\n]/\n/gs;
+      if(!_run($ref,$var,$epl) && $@){
+        $@ =~ s/at\x20\(eval\x20[0-9]+\)\x20line\x20([0-9]+)/'at line '.($now+($1-1))/eg;
         $@ =~ s/\x22/\&quot\;/g; chop $@;
-        $tmp .= qq[\n<blockquote style="padding:4px;color:#c00;background-color:#fdd;border:solid 1px #f99;font-size:80%;"><span style="font-weight:bold;">ERROR:</span> $@</blockquote>\n];
-        last;
+        my $ret = qq[<blockquote style="padding:4px;color:#c00;background-color:#fdd;border:solid 1px #f99;font-size:80%;"><span style="font-weight:bold;">ERROR:</span> $@</blockquote>\n];
+        exists $ENV{MOD_PERL} ? $ref->print($ret) : $tmp .= $ret;
+        last if $@ =~ /^(Force|ModPerl)/;
       }
-    } else{
-      $tag =~ s/(?<![\\\$])(\$((::)?\w+|\[[\x22\x27]?\w+[\x22\x27]?\]|(->)?\{[\x22\x27]?\w+[\x22\x27]?\})+)/eval($1).(($@)?$1:'')/eg;
-      $tag =~ s/\\\$/\$/g;
-      $tmp .= $tag;
     }
-  }
+  } : do {
+    local $SIG{ALRM} = sub{ die 'Forced exiting, detected loop'; };
+    alarm $TIMEOUT;
+    if(!_run($ref,$var,join('',@src)) && $@){
+      $@ =~ s/at\x20\(eval\x20[0-9]+\)\x20line\x20([0-9]+)/at line $1/g;
+      $@ =~ s/\x22/\&quot\;/g; chop $@;
+      my $ret = qq[<h3 style="color:#600;font-weight:bold;">Encountered 500 Internal Server Error</h3>\n\n];
+      $ret .= qq[<blockquote style="padding:4px;color:#c00;background-color:#fdd;border:solid 1px #f99;font-size:80%;">$@</blockquote>\n];
+      $ret .= qq[<hr style="border-style:solid;border-width:1px 0px 0px 0px;border-color:#900;" />\n];
+      $ret .= qq[<div style="color:#600;text-align:right;">$ENV{SERVER_SIGNATURE}</div>\n];
+      $ref->header_out('Status','500 Internal Server Error');
+      exists $ENV{MOD_PERL} ? $ref->print($ret) : $tmp .= $ret;
+    }
+  };
   close TMP;
   *STDOUT = $STDBAK;
   return $tmp if defined wantarray;
@@ -72,11 +182,12 @@ sub ep{
 
 sub handler{
   my($r,$c) = (shift,'');
+  my $f = exists $ENV{OUTMODE} ? $ENV{OUTMODE} : 0;
   $r->content_type('text/html');
   return 1 unless open HTM, $r->filename;
   sysread HTM,$c,(-s HTM);
   close HTM;
-  ep $r,\$c;
+  ep $r,\$c,$f;
   0;
 }
 
@@ -89,24 +200,30 @@ sub new{
 
 1;
 
+__END__
+
 =head1 NAME
 
 HTML::EmbeddedPerl - The Perl embeddings for HTML.
 
 =head1 SYNOPSYS
 
-recommends run on I<automatic>.
+I<automatic>.
 
 =head2 run in the automatically
 
-passing of instanced object B<$epl>.
+passing of instanced object B<$ep>.
 that are reference of B<Apache::RequestRec>I<(modperl)> or B<__PACKAGE__>I<(cgi)>.
 example of use in the code tags.
 
-  # output header ($key,$value)
-  $epl->header_out('Content-Type','text/html');
+  # set output header ($key,$value)
+  $ep->header_out('Content-Create','foo');
   # set of contents type, default is 'text/html', output forcing.
-  $epl->content_type('text/html');
+  $ep->content_type('text/plain');
+
+if you want not use of global variables, please use B<$ev>.
+destruct B<$ev> after execute.
+but it can use between multiple tags too.
 
 =head2 using in the script
 
@@ -115,7 +232,7 @@ example of use in the code tags.
   use HTML::EmbeddedPerl;
   $e = HTML::EmbeddedPerl->new();
 
-  # output header ($key,$value)
+  # set output header ($key,$value)
   $e->header_out('Content-Create','foo');
   # set of contents type, default is 'text/html'
   $e->content_type('text/plain');
@@ -136,31 +253,31 @@ example of use in the code tags.
 The Perl-Code embeddings for HTML, it is simple and easy.
 
 adding I<E<lt>$ Perl-Code $E<gt>> to your HTML.
-if code blocks too many, cannot use local variables between code blocks.
 
-=head2 modperl2
+=head2 mod_perl2
 
-if you want not use of global variables, please use B<$var>.
-destruct B<$var> after execute.
-but it can use between multiple tags too.
+write B<httpd.conf> or B<.htaccess>.
 
   <FilesMatch ".*\.phtml?$">
+  # Output Mode - 0..5, see OPTIONS section.
+  PerlSetEnv OUTMODE 0
   SetHandler modperl
   PerlResponseHandler HTML::EmbeddedPerl
   PerlOptions +ParseHeaders
   </FilesMatch>
 
-for most compatibility, use I<PerlResponseHandler perl-script>.
+needs most compatibility, use I<PerlResponseHandler perl-script>.
 
-=head2 cgi
+=head2 CGI
 
 inserting first line to
 
   #!/your/path/twepl
 
-=head2 wrapper
+=head2 Wrapper
 
 if you cannot use twepl? but wrapper.pl is available.
+write B<.htaccess>.
 
   AddType application/x-embedded-perl .phtml
   AddHandler application/x-embedded-perl .phtml
@@ -177,66 +294,177 @@ B<$TIMEOUT> is global, please change it overwritten.
 already executing under alarm, cannot change that timeout.
 
   # set as new timeout.
-  alarm($TIMEOUT);
+  alarm(X);
   # cancelling timeout.
   alarm(0);
 
-=head2 modperl2
+=head2 mod_perl2
 
-  $TIMEOUT = X;
+  # set as new timeout.
+  alarm(($TIMEOUT=X));
   # cancelling timeout and unset timeout.
   alarm(($TIMEOUT=0));
 
-=head2 cgi
+=head2 CGI
 
   # set as new timeout.
   alarm(X);
 
-=head2 wrapper
+=head2 Wrapper
 
 before calling sub B<ep()>
 
   $HTML::EmbeddedPerl::TIMEOUT = X;
 
+=head1 INTERNAL METHODS
+
+  _coloring
+  _extract_hash
+  _extract_array
+  _init
+  _run
+
+  handler
+
+=head1 BASIC METHODS
+
+=head2 ep
+
+  ep($string,$option);
+
+=head2 new
+
+  $ep = HTML::EmbeddedPerl->new();
+
+=head2 flush
+
+flushing HTTP header.
+
+  $ep->flush;
+
+=head1 COMPATIBLE METHODS
+
+it tiny-tiny solving B<cgi>-B<modperl> compatibility methods.
+use that $ep->B<method> I<*inner code tags only>.
+
+=head2 header_out
+
+  $ep->header_out($key,$val);
+
+=head2 content_type
+
+  $ep->content-type($type);
+
+=head2 print
+
+  $ep->print($string);
+
+=head1 OTHER METHODS
+
+other methods define it freely.
+
+=head2 mod_perl2
+
+depends B<Apache::RequestRec> and more.
+
+=head1 EXPORTS
+
+ep(B<string>,B<option>)
+
+=head1 OPTIONS
+
+B<0> = default, execute only once.
+B<1> =  I<-- with coloring source>.
+B<2> = older version compatible, every tags every execute.
+B<3> =  I<-- with coloring source>.
+B<4> = output internal code.
+B<5> =  I<-- with coloring source>.
+
+=head1 COMMENTS
+
+B<#> comments
+B<//> comments
+B</*> comments B<*/>
+
+recommended use B</* */> and please do not put comments in the same line as the code if possible.
+
 =head1 BETA Features
 
-replace variables on non-code blocks. I<(not a reference) scalar> only.
+case of extract scalar in non-code blocks.
 
-=head1 RESERVED
+  <$ my $scalar = 'this is scalar'; $>
+  <p>$scalar</p>
+  ...
+  <p>this is scalar</p>
 
-it tiny-tiny solving B<cgi>-B<modperl> compatibility.
+if you want not extract vars, please use escape sequence B<'\'>.
 
-=head2 Subroutines
+  <p>\$scalar</p>
+  ...
+  <p>$scalar</p>
 
-base.
+and available simple template.
 
-  ep
-  handler
-  new
+=head2 Boolean Expression
 
-for cgi interface.
-other B<Subs> define it freely.
+<!=B<EXPRESSION>>...</!>
+replace inner B<<!>> to else, <!=B<EXPRESSION>> to elsif.
 
-  header_out
-  content_type
-  print
-  flush
+  <$ my $flag = 1; my $oops = 'oops!'; $>
+  <!=$flag><p>$flag</p><!><p>$oops</p></!>
+  ...
+  <p>1</p>
 
-for modperl, run in the depends B<Apache::RequestRec> and more.
+B<E<gt>> is same a tag-close, try B<($a E<gt> $b)> in compilation errors.
 
-=head2 Variables
+=head2 Extract Array
 
-  $TIMEOUT(global)
-  $epl
-  $var
+<@=B<ARRAYNAME>>...</@>, extract value is B<$_>.
+B<ARRAYNAME> can use reference B<{ARRAYNAME}> or B<\ARRAYNAME>.
+
+B<$n> = current array name.
+B<$i> = current position.
+B<$c> = equals scalar @array;
+
+and B<$XXX> = want vars.
+
+  <$ my @array = ('a'..'c'); $>
+  <@=array><p>$i: $_</p>\n</@>
+  ...
+  <p>0: a</p>
+  <p>1: b</p>
+  <p>2: c</p>
+
+=head2 Extract Hash
+
+<%=B<HASHNAME>>...</%>, extract key is B<$k>, value is B<$v>.
+B<HASHNAME> can use reference B<{HASHNAME}> or B<\HASHNAME>.
+
+B<$n> = current hash name.
+B<$c> = equals scalar keys %hash;
+
+and B<$XXX> = want vars.
+
+  <$ my %hash = ('a'=>1,'b'=>2,'c'=>3); $>
+  <table>
+  <%=hash><tr><th>$k</th><td>$v</td></tr>\n</%>
+  </table>
+  ...
+  <table>
+  <tr><th>a</th><td>1</td><tr>
+  <tr><th>b</th><td>2</td><tr>
+  <tr><th>c</th><td>3</td><tr>
+  </table>
 
 =head1 AUTHOR
 
 Twinkle Computing <twinkle@cpan.org>
 
-=head1 LISENCE
+=head1 COPYRIGHT
 
 Copyright (c) 2010 Twinkle Computing All rights reserved.
+
+=head1 LISENCE
 
 This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 

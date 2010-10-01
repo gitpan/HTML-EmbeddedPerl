@@ -1,5 +1,8 @@
 Revision history for Perl extension HTML::EmbeddedPerl.
 
+0.10  Sun Sep 30 20:00:00 2010
+	updates: changes.many changes. older version compatibility was gone.
+
 0.09  Sun Sep 24 10:20:00 2010
 	bug-fix: all. (subroutine, flush)
 

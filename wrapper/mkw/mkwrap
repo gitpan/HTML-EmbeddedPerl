@@ -1,0 +1,32 @@
+#!/usr/bin/perl
+
+use Config;
+
+open WRAPPER,'>wrapper.pl';
+eval{flock(WRAPPER,2);};
+
+print WRAPPER <<_EOW_;
+#!$Config{perlpath}
+
+use HTML::EmbeddedPerl;
+
+sub abort{
+  my \$msg = shift;
+  print STDOUT "Content-Type: text/plain\\r\\n\\r\\nERROR: \$msg\\n";
+  exit;
+}
+
+my \$htm;
+
+abort 'cannot open file.' unless open HTM, "<\$ENV{PATH_TRANSLATED}";
+sysread HTM,\$htm,(-s HTM);
+close HTM;
+
+abort 'empty.' unless \$htm;
+
+ep(\\\$htm);
+_EOW_
+
+close WRAPPER;
+
+chmod(0755,'wrapper.pl');

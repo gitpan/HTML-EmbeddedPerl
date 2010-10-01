@@ -2,20 +2,19 @@ bin/Makefile.PL
 bin/ppv/perlpv
 bin/t/EmbeddedPerl.t
 bin/TESTS
+bin/twepl.ico
 bin/twepl.pl
+bin/twres.rc
 Changes
-doc/en/HTML/EmbeddedPerl.html
-doc/en/twepl.html
-doc/ja/HTML/EmbeddedPerl.html
-doc/ja/twepl.html
+doc/HTML/EmbeddedPerl.html
+doc/twepl.html
 lib/HTML/EmbeddedPerl.pm
 Makefile.PL
 MANIFEST
-pod/en/HTML/EmbeddedPerl.pod
-pod/en/twepl.pod
-pod/ja/HTML/EmbeddedPerl.pod
-pod/ja/twepl.pod
+pod/HTML/EmbeddedPerl.pod
+pod/twepl.pod
 README
 t/HTML-EmbeddedPerl.t
 wrapper/Makefile.PL
+wrapper/mkw/mkwrap
 META.yml                                 Module meta-data (added by MakeMaker)

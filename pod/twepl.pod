@@ -4,20 +4,29 @@ twepl - The Perl embeddings for HTML.
 
 =head1 SYNOPSYS
 
-inserting first line to
-
-  #!/your/path/twepl
+twepl -[ceo]+ -t:?X files...
 
 =head1 DESCRIPTION
 
 The Perl-Code embeddings for HTML, it is simple and easy.
 
 adding I<E<lt>$ Perl-Code $E<gt>> to your HTML.
-if code blocks too many, cannot use local variables between code blocks.
+
+=head1 CGI
+
+inserting first line to
+
+  #!/your/path/twepl (options)?
 
 =head1 OPTIONS
 
-nothing options for twepl.
+B<-[ceo]+>
+
+B<c> = with coloring source.
+B<e> = older version compatible, every tags every execute.
+B<o> = output internal code.
+
+B<-t:?X> = set timeout of B<X> seconds.
 
 =head1 SEE ALSO
 
@@ -27,9 +36,11 @@ L<HTML::EmbeddedPerl>
 
 Twinkle Computing <twinkle@cpan.org>
 
-=head1 LISENCE
+=head1 COPYRIGHT
 
 Copyright (c) 2010 Twinkle Computing All rights reserved.
+
+=head1 LISENCE
 
 This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 
