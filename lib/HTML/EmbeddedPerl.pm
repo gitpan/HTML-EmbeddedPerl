@@ -9,7 +9,7 @@ our @ISA       = qw(Exporter);
 our @EXPORT    = qw(ep);
 our @EXPORT_OK = qw($VERSION $TIMEOUT);
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 our $TIMEOUT = 2;
 
 my $STDBAK = *STDOUT;
@@ -96,14 +96,12 @@ sub _get_crlf{
 }
 sub _ignore_comments{
   my($i,@o) = shift;
-  foreach my $t(split(/(\<\<[\"\'\`]?(\w+).+?\2)/s,$i)){
-    if($t =~ /^\w+$/){
-      next;
-    } elsif($t =~ /^\<\<[\"\'\`]?\w+/){
+  foreach my $t(split(/(\<\<[\"\'\`]?(\w+).+?)\2/s,$i)){
+    if($t =~ /^\<\<[\"\'\`]?\w+/){
       push(@o,$t);
     } else{
       $t =~ s/\x20*\/\*(.+?)\*\/\x20*/_get_crlf($1)/egos;
-      $t =~ s/(((?:qq?).|[\x22\x27\(\)\[\]\{\}]).*)[\x20]+?(\x23|\/\/).*(?!\1).*/$1/go;
+      $t =~ s/(((?:q[qw]?)\(.*\)|(?:q[qw]?)\[.*\]|(?:q[qw]?)\{.*\}|(?:q[qw]?)(.).*\2|([\"\'\`]).*\3)\;)*\x20+?(\x23|\/\/).*/$1/g;
       push(@o,$t);
     }
   }
@@ -113,7 +111,7 @@ sub _init{
   my($i,$f,@o) = (ref $_[0] ? ${$_[0]} : $_[0],$_[1]);
   my($d);
   foreach my $t(split(/(\<\$.+?\$\>)/s,$i)){
-    if($t =~ s/^\<\$// && $t =~ s/\$\>$//m){
+    if($t =~ s/^\<\$// && $t =~ s/\$\>$//){
       push(@o,_coloring($t)) if $f % 2;
       $t =~ s/(?<!\$ep\-\>)([\s\;])print\s*(?:[\$\*\w]*(?:\(\))?)\s*(q[qw]?|\<\<[\"\'\`]?(\w+))?([\(\[\{]?)(.)(.+?)(\3|\5)([\)\]\}])?(\;?)/_reprint($1,$2,$3,$4,$5,$6,$7,$8,$9)/egs if exists $ENV{MOD_PERL};
       $t = _ignore_comments($t);
@@ -180,7 +178,7 @@ sub ep{
         $@ =~ s/\x22/\&quot\;/g; chop $@;
         my $ret = qq[<blockquote style="padding:4px;color:#c00;background-color:#fdd;border:solid 1px #f99;font-size:80%;"><span style="font-weight:bold;">ERROR:</span> $@</blockquote>\n];
         exists $ENV{MOD_PERL} ? $ref->print($ret) : $tmp .= $ret;
-        last if $@ =~ /^(Force|ModPerl)/;
+        last if $@ =~ /^(Force|ModPerl\:\:Util\:\:exit)/;
       }
     }
   } : do {

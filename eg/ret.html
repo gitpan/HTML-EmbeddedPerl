@@ -14,17 +14,34 @@
 
 <hr />
 
-<p><blockquote style="color:#090;">&nbsp;/*<br />comment&nbsp;18<br />&nbsp;comment&nbsp;19<br />&nbsp;&nbsp;comment&nbsp;20<br />&nbsp;&nbsp;&nbsp;comment&nbsp;21<br />&nbsp;&nbsp;&nbsp;&nbsp;comment&nbsp;22<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;comment&nbsp;23<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;comment&nbsp;24<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;comment&nbsp;25<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;comment&nbsp;26<br />*/<br />foreach(sort&nbsp;keys&nbsp;%ENV){&nbsp;//28<br />&nbsp;&nbsp;print&nbsp;STDOUT&nbsp;&quot;$_:&nbsp;$ENV{$_}&lt;br&nbsp;/&gt;\n&quot;;&nbsp;//29<br />}&nbsp;//30</blockquote>
+<p><blockquote style="color:#090;">&nbsp;/*<br />comment&nbsp;18<br />&nbsp;comment&nbsp;19<br />&nbsp;&nbsp;comment&nbsp;20<br />&nbsp;&nbsp;&nbsp;comment&nbsp;21<br />&nbsp;&nbsp;&nbsp;&nbsp;comment&nbsp;22<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;comment&nbsp;23<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;comment&nbsp;24<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;comment&nbsp;25<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;comment&nbsp;26<br />*/<br />foreach(sort&nbsp;keys&nbsp;%ENV){&nbsp;//28<br />&nbsp;&nbsp;print&nbsp;STDOUT&nbsp;&quot;$_:&nbsp;$ENV{$_}&lt;br&nbsp;/&gt;\n&quot;;&nbsp;//29<br />}&nbsp;//30</blockquote>DOCUMENT_ROOT: /valore/serv/twintk/www<br />
 GATEWAY_INTERFACE: CGI/1.1<br />
+HTTP_ACCEPT: text/html, image/jpeg, image/png, text/*, image/*, */*<br />
+HTTP_ACCEPT_CHARSET: utf-8, utf-8;q=0.5, *;q=0.5<br />
+HTTP_ACCEPT_ENCODING: x-gzip, x-deflate, gzip, deflate<br />
+HTTP_ACCEPT_LANGUAGE: ja, en<br />
+HTTP_HOST: www.twinkle.tk<br />
+HTTP_REFERER: http://www.twinkle.tk/tests/embedding-perl/<br />
+HTTP_USER_AGENT: Mozilla/5.0 (compatible; Konqueror/3.5; Linux) KHTML/3.5.10 (like Gecko)<br />
+HTTP_X_FORWARDED_FOR: 192.168.10.10, 192.168.1.2<br />
+PATH: /usr/local/bin:/usr/bin:/bin<br />
 QUERY_STRING: <br />
-REDIRECT_HANDLER: application/x-embeddedperl-test<br />
-REDIRECT_STATUS: 200<br />
+REMOTE_ADDR: 192.168.1.2<br />
+REMOTE_HOST: starunit.myserv.noo<br />
+REMOTE_PORT: 46804<br />
 REQUEST_METHOD: GET<br />
+REQUEST_URI: http://www.twinkle.tk/tests/embedding-perl/usinginthescript.cgi<br />
+SCRIPT_FILENAME: /valore/serv/twintk/www/tests/embedding-perl/usinginthescript.cgi<br />
+SCRIPT_NAME: /tests/embedding-perl/usinginthescript.cgi<br />
+SERVER_ADDR: 192.168.1.2<br />
+SERVER_ADMIN: webmaster@twinkle.tk<br />
+SERVER_NAME: www.twinkle.tk<br />
 SERVER_PORT: 80<br />
-SERVER_PROTOCOL: HTTP/1.1<br />
-SERVER_SIGNATURE: <address>Apache</address>
+SERVER_PROTOCOL: HTTP/1.0<br />
+SERVER_SIGNATURE: <address>Apache/2.2.11 (Mandriva Linux/PREFORK-10.10mdv2009.1) mod_python/3.3.1 Python/2.6.1 mod_ruby/1.2.6 Ruby/1.8.7(2008-08-11) mod_ssl/2.2.11 OpenSSL/0.9.8k PHP/5.2.14 with Suhosin-Patch mod_mono/2.2 mod_jk/1.2.30 mod_perl/2.0.4 Perl/v5.10.0 Server at www.twinkle.tk Port 80</address>
 <br />
-SERVER_SOFTWARE: Apache<br />
+SERVER_SOFTWARE: Apache/2.2.11 (Mandriva Linux/PREFORK-10.10mdv2009.1) mod_python/3.3.1 Python/2.6.1 mod_ruby/1.2.6 Ruby/1.8.7(2008-08-11) mod_ssl/2.2.11 OpenSSL/0.9.8k PHP/5.2.14 with Suhosin-Patch mod_mono/2.2 mod_jk/1.2.30 mod_perl/2.0.4 Perl/v5.10.0<br />
+UNIQUE_ID: TKikcX8AAAEAAFuuR0AAAAAE<br />
 </p>
 
 <hr />
@@ -66,7 +83,8 @@ SERVER_SOFTWARE: Apache<br />
 
 <hr />
 
-<blockquote style="color:#090;">&nbsp;$flg&nbsp;=&nbsp;1;&nbsp;#69&nbsp;</blockquote>
+<blockquote style="color:#090;">&nbsp;$flg&nbsp;=&nbsp;1;&nbsp;print&nbsp;&quot;#&nbsp;not&nbsp;comment&lt;br&nbsp;/&gt;\n&quot;;&nbsp;#&nbsp;69&nbsp;</blockquote># not comment<br />
+
 <blockquote style="color:#00c;">&lt;!=$flg&gt;&lt;p&gt;1&lt;/p&gt;&lt;!=!$flg&gt;&lt;p&gt;0&lt;/p&gt;&lt;!&gt;&lt;p&gt;?&lt;/p&gt;&lt;/!&gt;</blockquote><p>1</p>
 
 <hr />
@@ -80,7 +98,7 @@ SERVER_SOFTWARE: Apache<br />
 <hr />
 
 <p>define subroutine.</p>
-<blockquote style="color:#090;">&nbsp;sub&nbsp;test_print{&nbsp;$ep-&gt;print('OK.');&nbsp;}&nbsp;//83&nbsp;</blockquote>
+<blockquote style="color:#090;">sub&nbsp;test_print{&nbsp;$ep-&gt;print('OK.');&nbsp;};&nbsp;//83</blockquote>
 
 <hr />
 
@@ -94,7 +112,7 @@ SERVER_SOFTWARE: Apache<br />
 
 <hr />
 
-<div>Apache</div>
+<div>Apache/2.2.11 (Mandriva Linux/PREFORK-10.10mdv2009.1) mod_python/3.3.1 Python/2.6.1 mod_ruby/1.2.6 Ruby/1.8.7(2008-08-11) mod_ssl/2.2.11 OpenSSL/0.9.8k PHP/5.2.14 with Suhosin-Patch mod_mono/2.2 mod_jk/1.2.30 mod_perl/2.0.4 Perl/v5.10.0</div>
 
 </body>
 </html>

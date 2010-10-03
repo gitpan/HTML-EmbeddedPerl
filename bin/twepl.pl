@@ -1,9 +1,11 @@
+#!/usr/bin/perl
+
 package twepl;
 
 use strict;
 use warnings;
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 our $TIMEOUT = 2;
 
 my $STDBAK = *STDOUT;
@@ -69,7 +71,7 @@ sub _extract_tags{
       $t = _extract_tags($t,$f,1) if $t =~ /\<([\@\%\!])\=(?:\([^\)]+\)|[^\>]+)\>.+\<\/\1\>/;
       push(@o,_extract_bool($x,$t,$l));
     } else{
-      push(@o,$l ? $t : qq[\$ep->print("$t");]);
+      push(@o,$l ? $t : qq[print "$t";]);
     }
   }
   return wantarray ? @o : join '',@o;
@@ -81,14 +83,12 @@ sub _get_crlf{
 }
 sub _ignore_comments{
   my($i,@o) = shift;
-  foreach my $t(split(/(\<\<[\"\'\`]?(\w+).+?\2)/s,$i)){
-    if($t =~ /^\w+$/){
-      next;
-    } elsif($t =~ /^\<\<[\"\'\`]?\w+/){
+  foreach my $t(split(/(\<\<[\"\'\`]?(\w+).+?)\2/s,$i)){
+    if($t =~ /^\<\<[\"\'\`]?\w+/){
       push(@o,$t);
     } else{
       $t =~ s/\x20*\/\*(.+?)\*\/\x20*/_get_crlf($1)/egos;
-      $t =~ s/(((?:qq?).|[\x22\x27\(\)\[\]\{\}]).*)[\x20]+?(\x23|\/\/).*(?!\1).*/$1/go;
+      $t =~ s/(((?:q[qw]?)\(.*\)|(?:q[qw]?)\[.*\]|(?:q[qw]?)\{.*\}|(?:q[qw]?)(.).*\2|([\"\'\`]).*\3)\;)*\x20+?(\x23|\/\/).*/$1/g;
       push(@o,$t);
     }
   }
@@ -98,7 +98,7 @@ sub _init{
   my($i,$f,@o) = (ref $_[0] ? ${$_[0]} : $_[0],$_[1]);
   my($d);
   foreach my $t(split(/(\<\$.+?\$\>)/s,$i)){
-    if($t =~ s/^\<\$// && $t =~ s/\$\>$//m){
+    if($t =~ s/^\<\$// && $t =~ s/\$\>$//){
       push(@o,_coloring($t)) if $f % 2;
       $t = _ignore_comments($t);
       push(@o,$t);

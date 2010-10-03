@@ -1,5 +1,8 @@
 Revision history for Perl extension HTML::EmbeddedPerl.
 
+0.12  Oct 04 00:00:00 2010
+	bug-fix: regular expression.
+
 0.11  Oct 02 22:00:00 2010
 	bug-fix: regular expression.
 

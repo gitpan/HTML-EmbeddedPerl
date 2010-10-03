@@ -42,7 +42,7 @@ if(! eval{$target} && $@){
   print STDOUT "perlpv-lint: passed $target\n";
 }
 
-$source =~ s/^\#\![^\r\n]+\s*//;
+$source =~ s/^\#\![^\r\n]+\s*//s;
 $srclen = length $source;
 
 my($pkgnam) = $source =~ /^package\x20(((::)?\w+)+)/;
