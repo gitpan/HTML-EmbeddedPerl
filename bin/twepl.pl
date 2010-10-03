@@ -5,7 +5,7 @@ package twepl;
 use strict;
 use warnings;
 
-our $VERSION = '0.12';
+our $VERSION = '0.15';
 our $TIMEOUT = 2;
 
 my $STDBAK = *STDOUT;
@@ -50,27 +50,28 @@ sub _extract_bool{
 sub _extract_tags{
   my($i,$f,$l,@o) = (shift,shift,shift);
   foreach my $t(split(/(\<\%\=(?:\w+|\{\w+\}|\\\w+)\>(?:.*(?:\<\%=(?:\w+|\{\w+\}|\\\w+)\>)?.+?(?:\<\/\%\>)?.*)+\<\/\%\>|\<\@\=(?:\w+|\{\w+\}|\\\w+)\>(?:.*(?:\<\@=(?:\w+|\{\w+\}|\\\w+)\>)?.+?(?:\<\/\@\>)?.*)+\<\/\@\>|\<\!\=[^\>]+\>(?:.*(?:\<\!=[^\>]+\>)?.+?(?:\<\/\!\>)?.*)+\<\/\!\>)/os,$i)){
-    $t =~ s/\"/\\\"/g;
     if($t =~ s/\<\/\%\>$// && $t =~ s/^\<\%\=(\w+|\{\w+\}|\\\w+)\>//){
       my $n = $1;
-      push(@o,_coloring("<\%=$n>$t</\%>",'c0c')) if ! $l && $f % 2;
+      push(@o,_coloring("<\%=$n>$t</\%>",'c0c')) if ! $l && $f & 2;
       $t = _extract_tags($t,$f,1) if $t =~ /\<([\@\%\!])\=(\([^\)]+\)|[^\>]+)\>.+\<\/\1\>/;
       $n =~ s/^\{(\w+)\}$/{\$$1}/;
       $n =~ s/^\\(\w+)$/{\$$1}/;
       push(@o,_extract_hash($n,$t,$l));
     } elsif($t =~ s/\<\/\@\>$// && $t =~ s/^\<\@\=(\w+|\{\w+\}|\\\w+)\>//){
       my $n = $1;
-      push(@o,_coloring("<\@\=$n>$t</\@>",'c00')) if ! $l && $f % 2;
+      push(@o,_coloring("<\@\=$n>$t</\@>",'c00')) if ! $l && $f & 2;
       $t = _extract_tags($t,$f,1) if $t =~ /\<([\@\%\!])\=(\([^\)]+\)|[^\>]+)\>.+\<\/\1\>/;
       $n =~ s/^\{(\w+)\}$/{\$$1}/;
       $n =~ s/^\\(\w+)$/{\$$1}/;
       push(@o,_extract_array($n,$t,$l));
     } elsif($t =~ s/\<\/\!\>$// && $t =~ s/^\<\!\=(\([^\)]+\)|[^\>]+)\>//){
       my $x = $1;
-      push(@o,_coloring("<\!=$x>$t</\!>",'00c')) if ! $l && $f % 2;
+      push(@o,_coloring("<\!=$x>$t</\!>",'00c')) if ! $l && $f & 2;
       $t = _extract_tags($t,$f,1) if $t =~ /\<([\@\%\!])\=(?:\([^\)]+\)|[^\>]+)\>.+\<\/\1\>/;
       push(@o,_extract_bool($x,$t,$l));
     } else{
+      # output HTML code in debug
+      #push(@o,_coloring($t,'999')) if ! $l && $f % 2;
       push(@o,$l ? $t : qq[print "$t";]);
     }
   }
@@ -95,16 +96,24 @@ sub _ignore_comments{
   return wantarray ? @o : join '',@o;
 }
 sub _init{
-  my($i,$f,@o) = (ref $_[0] ? ${$_[0]} : $_[0],$_[1]);
+  my($i,$f,$u,@o) = (ref $_[0] ? ${$_[0]} : $_[0],$_[1],$_[2]);
   my($d);
   foreach my $t(split(/(\<\$.+?\$\>)/s,$i)){
     if($t =~ s/^\<\$// && $t =~ s/\$\>$//){
       push(@o,_coloring($t)) if $f % 2;
+      $t =~ s/(?<!\$ep\-\>)([\s\;])print\s*(?:[\$\*\w]*(?:\(\))?)\s*(q[qw]?|\<\<[\"\'\`]?(\w+))?([\(\[\{]?)(.)(.+?)(\3|\5)([\)\]\}])?(\;?)/_re_print($1,$2,$3,$4,$5,$6,$7,$8,$9)/egs if exists $ENV{MOD_PERL};
       $t = _ignore_comments($t);
       push(@o,$t);
     } else{
-      $t = _extract_tags($t,$f,0);
-      push(@o,$t);
+      my $y = $t =~ s/^(\s*)\<\!\-\-\#?y\-\-\>/$1/is;
+      my $n = $t =~ s/^(\s*)\<\!\-\-\#?n\-\-\>/$1/is;
+      $t =~ s/\"/\\\"/go;
+      if($u && ! $n || ! $u && $y){
+        $t = _extract_tags($t,$f,0);
+        push(@o,$t);
+      } else{
+        push(@o,qq[print "$t";]);
+      }
     }
   }
   return wantarray ? @o : join '',@o;
@@ -140,14 +149,16 @@ sub main{
   $ref->{type} = 'text/html';
   $ref->{head} = [];
   my $flg = 0;
+  my $ubf = 0;
   my($pos,$now) = (1,0);
   my $htm = '';
   foreach my $arg(@_){
-    if($arg =~ /^\-([ceo]+)$/i){
+    if($arg =~ /^\-([ceou]+)$/i){
       my $opt = $1;
       $flg += 4 if $opt =~ /c/ && $flg < 4;
       $flg += 2 if $opt =~ /e/ && $flg < 2;
       $flg += 1 if $opt =~ /o/ && !($flg % 2);
+      $ubf += 1 if $opt =~ /u/ && !($ubf % 2);
     } elsif($arg =~ /^\-t[\=\:]?([0-9]+)$/i){
       $TIMEOUT = int($1);
     } elsif(-f $arg){
@@ -164,7 +175,7 @@ sub main{
     print STDOUT "twepl: no input files.\n";
     exit;
   }
-  my @src = _init($htm,$flg);
+  my @src = _init($htm,$flg,$ubf);
   my $tmp = '';
   my $var = bless {},$pkg.'::Vars';
   open TMP,'>>',\$tmp;

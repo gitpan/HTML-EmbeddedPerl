@@ -71,6 +71,8 @@ write B<httpd.conf> or B<.htaccess>.
   <FilesMatch ".*\.phtml?$">
   # Output Mode - 0..5, see OPTIONS section.
   PerlSetEnv OUTMODE 0
+  # Template Mode - 0..1, see OPTIONS section.
+  PerlSetEnv USEFEAT 0
   SetHandler modperl
   PerlResponseHandler HTML::EmbeddedPerl
   PerlOptions +ParseHeaders
@@ -147,7 +149,7 @@ before calling sub B<ep()>
 
   $ep = HTML::EmbeddedPerl->new();
 
-=head1 FOR CGI METHODS
+=head1 METHODS FOR CGI
 
 =head2 flush
 
@@ -182,9 +184,13 @@ depends B<Apache::RequestRec> and more.
 
 =head1 EXPORTS
 
-ep(B<string>,B<option>)
+ep(B<string>,B<option1>,B<option2>)
 
 =head1 OPTIONS
+
+ep(B<string>,B<option1>,B<option2>)
+
+=head2 OPTION 1
 
 B<0> = default, execute only once.
 B<1> =  I<-- with coloring source>.
@@ -192,6 +198,11 @@ B<2> = older version compatible, every tags execute.
 B<3> =  I<-- with coloring source>.
 B<4> = output internal code.
 B<5> =  I<-- with coloring source>.
+
+=head2 OPTION 2
+
+B<0> = default, B<not> template mode.
+B<1> = template mode.I<(use beta features)>
 
 =head1 COMMENTS
 
@@ -201,7 +212,7 @@ B</*> comments B<*/>
 
 please do not put comments if possible.
 
-=head1 BETA Features
+=head1 Extract Vars
 
 case of extract scalar in non-code blocks.
 
@@ -210,25 +221,30 @@ case of extract scalar in non-code blocks.
   ...
   <p>this is scalar</p>
 
+  <$ my @array = (1..3); $>
+  <p>@array</p>
+  ...
+  <p>1 2 3</p>
+
 if you want not extract vars, please use escape sequence B<'\'>.
 
   <p>\$scalar</p>
+  <p>\@array</p>
   ...
   <p>$scalar</p>
+  <p>@array</p>
 
 and available simple template.
 
-=head2 Boolean Expression
+=head1 BETA Features
 
-<!=B<EXPRESSION>>...</!>
-replace inner B<<!>> to else, <!=B<EXPRESSION>> to elsif.
+use this beta features needs set option.
+or insert as first element in non-code blocks it.
 
-  <$ my $flag = 1; my $oops = 'oops!'; $>
-  <!=$flag><p>$flag</p><!><p>$oops</p></!>
-  ...
-  <p>1</p>
+B<<!--Y-->> is ON
+B<<!--N-->> is OFF
 
-B<E<gt>> is same a tag-close, try B<($a E<gt> $b)> in compilation errors.
+default is B<off>, because it was very slow.
 
 =head2 Extract Array
 
@@ -268,6 +284,18 @@ and B<$XXX> = want vars.
   <tr><th>b</th><td>2</td><tr>
   <tr><th>c</th><td>3</td><tr>
   </table>
+
+=head2 Boolean Expression
+
+<!=B<EXPRESSION>>...</!>
+replace inner B<<!>> to else, <!=B<EXPRESSION>> to elsif.
+
+  <$ my $flag = 1; my $oops = 'oops!'; $>
+  <!=$flag><p>$flag</p><!><p>$oops</p></!>
+  ...
+  <p>1</p>
+
+B<E<gt>> is same a tag-close, try B<($a E<gt> $b)> in compilation errors.
 
 =head1 AUTHOR
 

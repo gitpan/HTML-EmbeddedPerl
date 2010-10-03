@@ -41,13 +41,13 @@ $></p>
 
 <hr />
 
-<p><$ $ep->print("# $qqq"); #44 $></p>
+<p><$ $ep->print("# $qqq"); #44 $></p><!--Y-->
 
 <p>\$qqq = <span style="color:#f90;">$qqq</span></p>
 
 <hr />
 
-<$ @xxx = ("a".."c"); #50 $>
+<$ @xxx = ("a".."c"); #50 $><!--Y-->
 
 <@=xxx><p>$_</p>\n</@>
 
@@ -55,7 +55,7 @@ $></p>
 
 <hr />
 
-<$ %zzz = ("a"=>[1,2,3],"b"=>[4,5,6]); #58 $>
+<$ %zzz = ("a"=>[1,2,3],"b"=>[4,5,6]); #58 $><!--Y-->
 
 <table border="0" cellspacing="2" cellpadding="1">
 <%=zzz><tr><th>$k</th><@={v}><td>$_</td></@></tr>\n</%>
@@ -66,7 +66,7 @@ $></p>
 
 <hr />
 
-<$ $flg = 1; print "# not comment<br />\n"; # 69 $>
+<$ $flg = 1; print "# not comment<br />\n"; # 69 $><!--Y-->
 <!=$flg><p>1</p><!=!$flg><p>0</p><!><p>?</p></!>
 
 <hr />
@@ -90,7 +90,7 @@ $></p>
 
 <p><$ $ep->print('test'); //91 $></p>
 
-<$ $ep->header_out('Content-Create','foo'); /* 93 */ $>
+<$ $ep->header_out('Content-Create','foo'); /* 93 */ $><!--Y-->
 
 <hr />
 

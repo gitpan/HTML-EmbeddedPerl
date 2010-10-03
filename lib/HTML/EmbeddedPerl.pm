@@ -9,7 +9,7 @@ our @ISA       = qw(Exporter);
 our @EXPORT    = qw(ep);
 our @EXPORT_OK = qw($VERSION $TIMEOUT);
 
-our $VERSION = '0.12';
+our $VERSION = '0.15';
 our $TIMEOUT = 2;
 
 my $STDBAK = *STDOUT;
@@ -54,34 +54,34 @@ sub _extract_bool{
 sub _extract_tags{
   my($i,$f,$l,@o) = (shift,shift,shift);
   foreach my $t(split(/(\<\%\=(?:\w+|\{\w+\}|\\\w+)\>(?:.*(?:\<\%=(?:\w+|\{\w+\}|\\\w+)\>)?.+?(?:\<\/\%\>)?.*)+\<\/\%\>|\<\@\=(?:\w+|\{\w+\}|\\\w+)\>(?:.*(?:\<\@=(?:\w+|\{\w+\}|\\\w+)\>)?.+?(?:\<\/\@\>)?.*)+\<\/\@\>|\<\!\=[^\>]+\>(?:.*(?:\<\!=[^\>]+\>)?.+?(?:\<\/\!\>)?.*)+\<\/\!\>)/os,$i)){
-    $t =~ s/\"/\\\"/g;
     if($t =~ s/\<\/\%\>$// && $t =~ s/^\<\%\=(\w+|\{\w+\}|\\\w+)\>//){
       my $n = $1;
-      push(@o,_coloring("<\%=$n>$t</\%>",'c0c')) if ! $l && $f % 2;
+      push(@o,_coloring("<\%=$n>$t</\%>",'c0c')) if ! $l && $f & 2;
       $t = _extract_tags($t,$f,1) if $t =~ /\<([\@\%\!])\=(\([^\)]+\)|[^\>]+)\>.+\<\/\1\>/;
       $n =~ s/^\{(\w+)\}$/{\$$1}/;
       $n =~ s/^\\(\w+)$/{\$$1}/;
       push(@o,_extract_hash($n,$t,$l));
     } elsif($t =~ s/\<\/\@\>$// && $t =~ s/^\<\@\=(\w+|\{\w+\}|\\\w+)\>//){
       my $n = $1;
-      push(@o,_coloring("<\@\=$n>$t</\@>",'c00')) if ! $l && $f % 2;
+      push(@o,_coloring("<\@\=$n>$t</\@>",'c00')) if ! $l && $f & 2;
       $t = _extract_tags($t,$f,1) if $t =~ /\<([\@\%\!])\=(\([^\)]+\)|[^\>]+)\>.+\<\/\1\>/;
       $n =~ s/^\{(\w+)\}$/{\$$1}/;
       $n =~ s/^\\(\w+)$/{\$$1}/;
       push(@o,_extract_array($n,$t,$l));
     } elsif($t =~ s/\<\/\!\>$// && $t =~ s/^\<\!\=(\([^\)]+\)|[^\>]+)\>//){
       my $x = $1;
-      push(@o,_coloring("<\!=$x>$t</\!>",'00c')) if ! $l && $f % 2;
+      push(@o,_coloring("<\!=$x>$t</\!>",'00c')) if ! $l && $f & 2;
       $t = _extract_tags($t,$f,1) if $t =~ /\<([\@\%\!])\=(?:\([^\)]+\)|[^\>]+)\>.+\<\/\1\>/;
       push(@o,_extract_bool($x,$t,$l));
     } else{
+      # output HTML code in debug
       #push(@o,_coloring($t,'999')) if ! $l && $f % 2;
       push(@o,$l ? $t : qq[\$ep->print("$t");]);
     }
   }
   return wantarray ? @o : join '',@o;
 }
-sub _reprint{
+sub _re_print{
   my($r1,$r2,$r3,$r4,$r5,$r6,$r7,$r8,$r9) = @_;
   my $ret = "$r1\$ep->print($r2";
   $ret .= ')' if $3;
@@ -97,6 +97,7 @@ sub _get_crlf{
 sub _ignore_comments{
   my($i,@o) = shift;
   foreach my $t(split(/(\<\<[\"\'\`]?(\w+).+?)\2/s,$i)){
+    # here-document
     if($t =~ /^\<\<[\"\'\`]?\w+/){
       push(@o,$t);
     } else{
@@ -108,17 +109,24 @@ sub _ignore_comments{
   return wantarray ? @o : join '',@o;
 }
 sub _init{
-  my($i,$f,@o) = (ref $_[0] ? ${$_[0]} : $_[0],$_[1]);
+  my($i,$f,$u,@o) = (ref $_[0] ? ${$_[0]} : $_[0],$_[1],$_[2]);
   my($d);
   foreach my $t(split(/(\<\$.+?\$\>)/s,$i)){
     if($t =~ s/^\<\$// && $t =~ s/\$\>$//){
       push(@o,_coloring($t)) if $f % 2;
-      $t =~ s/(?<!\$ep\-\>)([\s\;])print\s*(?:[\$\*\w]*(?:\(\))?)\s*(q[qw]?|\<\<[\"\'\`]?(\w+))?([\(\[\{]?)(.)(.+?)(\3|\5)([\)\]\}])?(\;?)/_reprint($1,$2,$3,$4,$5,$6,$7,$8,$9)/egs if exists $ENV{MOD_PERL};
+      $t =~ s/(?<!\$ep\-\>)([\s\;])print\s*(?:[\$\*\w]*(?:\(\))?)\s*(q[qw]?|\<\<[\"\'\`]?(\w+))?([\(\[\{]?)(.)(.+?)(\3|\5)([\)\]\}])?(\;?)/_re_print($1,$2,$3,$4,$5,$6,$7,$8,$9)/egs if exists $ENV{MOD_PERL};
       $t = _ignore_comments($t);
       push(@o,$t);
     } else{
-      $t = _extract_tags($t,$f,0);
-      push(@o,$t);
+      my $y = $t =~ s/^(\s*)\<\!\-\-\#?y\-\-\>/$1/is;
+      my $n = $t =~ s/^(\s*)\<\!\-\-\#?n\-\-\>/$1/is;
+      $t =~ s/\"/\\\"/go;
+      if($u && ! $n || ! $u && $y){
+        $t = _extract_tags($t,$f,0);
+        push(@o,$t);
+      } else{
+        push(@o,qq[\$ep->print("$t");]);
+      }
     }
   }
   return wantarray ? @o : join '',@o;
@@ -134,9 +142,6 @@ sub header_out{
   }
   push(@{$_[0]->{head}},"$_[1]: $_[2]") if(!$f);
 }
-sub header{
-  my($o,$h) = (shift,shift); my($k,$v) = split(/\:\s+/,$h,2); header_out($o,$k,$v);
-}
 sub content_type{
   $_[0]->{type} = $_[1];
 }
@@ -144,9 +149,6 @@ sub flush{
   print $STDBAK (@{$_[0]->{head}} ? join("\r\n",@{$_[0]->{head}})."\r\n":'')."Content-Type: $_[0]->{type}\r\n\r\n";
 }
 sub print{
-  shift if ref $_[0] eq __PACKAGE__; CORE::print @_;
-}
-sub echo{
   shift if ref $_[0] eq __PACKAGE__; CORE::print @_;
 }
 
@@ -158,7 +160,8 @@ sub ep{
   my $pkg = __PACKAGE__;
   my $ref = (ref $_[0] && ref($_[0]) =~ /^(Apa|$pkg)/i)? shift : $pkg->new();
   my $flg = $_[1] ? $_[1] : 0;
-  my @src = _init((ref $_[0] ? ${$_[0]} : $_[0]),$flg);
+  my $ubf = $_[2] ? $_[2] : 0;
+  my @src = _init((ref $_[0] ? ${$_[0]} : $_[0]),$flg,$ubf);
   my $tmp = '';
   my $var = bless {},$pkg.'::Vars';
   open TMP,'>>',\$tmp;
@@ -205,11 +208,12 @@ sub ep{
 sub handler{
   my($r,$c) = (shift,'');
   my $f = exists $ENV{OUTMODE} ? $ENV{OUTMODE} : 0;
+  my $u = exists $ENV{USEFEAT} ? $ENV{USEFEAT} : 0;
   $r->content_type('text/html');
   return 1 unless open HTM, $r->filename;
   sysread HTM,$c,(-s HTM);
   close HTM;
-  ep $r,\$c,$f;
+  ep $r,\$c,$f,$u;
   0;
 }
 
@@ -297,6 +301,8 @@ write B<httpd.conf> or B<.htaccess>.
   <FilesMatch ".*\.phtml?$">
   # Output Mode - 0..5, see OPTIONS section.
   PerlSetEnv OUTMODE 0
+  # Template Mode - 0..1, see OPTIONS section.
+  PerlSetEnv USEFEAT 0
   SetHandler modperl
   PerlResponseHandler HTML::EmbeddedPerl
   PerlOptions +ParseHeaders
@@ -373,7 +379,7 @@ before calling sub B<ep()>
 
   $ep = HTML::EmbeddedPerl->new();
 
-=head1 FOR CGI METHODS
+=head1 METHODS FOR CGI
 
 =head2 flush
 
@@ -408,9 +414,13 @@ depends B<Apache::RequestRec> and more.
 
 =head1 EXPORTS
 
-ep(B<string>,B<option>)
+ep(B<string>,B<option1>,B<option2>)
 
 =head1 OPTIONS
+
+ep(B<string>,B<option1>,B<option2>)
+
+=head2 OPTION 1
 
 B<0> = default, execute only once.
 B<1> =  I<-- with coloring source>.
@@ -418,6 +428,11 @@ B<2> = older version compatible, every tags execute.
 B<3> =  I<-- with coloring source>.
 B<4> = output internal code.
 B<5> =  I<-- with coloring source>.
+
+=head2 OPTION 2
+
+B<0> = default, B<not> template mode.
+B<1> = template mode.I<(use beta features)>
 
 =head1 COMMENTS
 
@@ -427,7 +442,7 @@ B</*> comments B<*/>
 
 please do not put comments if possible.
 
-=head1 BETA Features
+=head1 Extract Vars
 
 case of extract scalar in non-code blocks.
 
@@ -436,25 +451,30 @@ case of extract scalar in non-code blocks.
   ...
   <p>this is scalar</p>
 
+  <$ my @array = (1..3); $>
+  <p>@array</p>
+  ...
+  <p>1 2 3</p>
+
 if you want not extract vars, please use escape sequence B<'\'>.
 
   <p>\$scalar</p>
+  <p>\@array</p>
   ...
   <p>$scalar</p>
+  <p>@array</p>
 
 and available simple template.
 
-=head2 Boolean Expression
+=head1 BETA Features
 
-<!=B<EXPRESSION>>...</!>
-replace inner B<<!>> to else, <!=B<EXPRESSION>> to elsif.
+use this beta features needs set option.
+or insert as first element in non-code blocks it.
 
-  <$ my $flag = 1; my $oops = 'oops!'; $>
-  <!=$flag><p>$flag</p><!><p>$oops</p></!>
-  ...
-  <p>1</p>
+B<<!--Y-->>
+B<<!--N-->>
 
-B<E<gt>> is same a tag-close, try B<($a E<gt> $b)> in compilation errors.
+default is B<off>, because it was very slow.
 
 =head2 Extract Array
 
@@ -494,6 +514,18 @@ and B<$XXX> = want vars.
   <tr><th>b</th><td>2</td><tr>
   <tr><th>c</th><td>3</td><tr>
   </table>
+
+=head2 Boolean Expression
+
+<!=B<EXPRESSION>>...</!>
+replace inner B<<!>> to else, <!=B<EXPRESSION>> to elsif.
+
+  <$ my $flag = 1; my $oops = 'oops!'; $>
+  <!=$flag><p>$flag</p><!><p>$oops</p></!>
+  ...
+  <p>1</p>
+
+B<E<gt>> is same a tag-close, try B<($a E<gt> $b)> in compilation errors.
 
 =head1 AUTHOR
 
