@@ -3,7 +3,7 @@ package twepl;
 use strict;
 use warnings;
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 our $TIMEOUT = 2;
 
 my $STDBAK = *STDOUT;
@@ -11,19 +11,19 @@ my $STDBAK = *STDOUT;
 sub _coloring{
   my($e,$c) = ($_[0],$_[1] ? $_[1] : '090');
   $c =~ s/^\x23//;
-  $e =~ s/^[\r\n]*//g;
-  $e =~ s/[\r\n]*$//g;
-  $e =~ s/\\(?!x22)/\\\\/g;
-  $e =~ s/\$/\\\$/g;
-  $e =~ s/\@/\\\@/g;
-  $e =~ s/\%/\\\%/g;
-  $e =~ s/\&/\&amp;/g;
-  $e =~ s/\x20/\&nbsp;/g;
-  $e =~ s/\</\&lt;/g;
-  $e =~ s/\>/\&gt;/g;
-  $e =~ s/\"/\&quot;/g;
-  $e =~ s/\r\n|[\r\n]/\<br\x20\/\>/g;
-  return qq[print "<blockquote style=\\x22color:#$c;\\x22>$e</blockquote>";];
+  $e =~ s/\&/\&amp;/go;
+  $e =~ s/\x20/\&nbsp;/go;
+  $e =~ s/\</\&lt;/go;
+  $e =~ s/\>/\&gt;/go;
+  $e =~ s/\"/\&quot;/go;
+  $e =~ s/^[\r\n]*//go;
+  $e =~ s/[\r\n]*$//go;
+  $e =~ s/\r\n|[\r\n]/\<br\x20\/\>/go;
+  $e =~ s/\\(?!\")/\\\\/go;
+  $e =~ s/\$/\\\$/go;
+  $e =~ s/\@/\\\@/go;
+  $e =~ s/\%/\\\%/go;
+  return qq[print "<blockquote style=\\"color:#$c;\\">$e</blockquote>";];
 }
 sub _extract_hash{
   my($n,$t,$l) = @_;
@@ -40,45 +40,56 @@ sub _extract_array{
 sub _extract_bool{
   my($x,$t,$l) = @_;
   my $r = qq[{ if($x){ print "$t" }};];
-  $r =~ s/\<\!\=([^\>]+)\>/"; } elsif($1) { print "/gs;
-  $r =~ s/\<\!\>/"; } else { print "/s;
-  $r = qq["; $r print \"] if $l;
+  $r =~ s/\<\!\=([^\>]+)\>/"; } elsif($1) { print "/gos;
+  $r =~ s/\<\!\>/"; } else { print "/os;
+  $r = qq["; $r print "] if $l;
   return $r;
 }
 sub _extract_tags{
   my($i,$f,$l,@o) = (shift,shift,shift);
-  foreach my $t(split(/(\<([\@\%\!])\=(?:\([^\)]+\)|[^\>]+)\>.+?\<\/\2\>)/s,$i)){
-    $t =~ s/\x22/\\\\x22/g;
-    if($t =~ /^[\%\@\!]$/){
-      next;
-    } elsif($t =~ s/\<\/\%\>$// && $t =~ s/^\<\%\=([^\>]+)\>//){
+  foreach my $t(split(/(\<\%\=(?:\w+|\{\w+\}|\\\w+)\>(?:.*(?:\<\%=(?:\w+|\{\w+\}|\\\w+)\>)?.+?(?:\<\/\%\>)?.*)+\<\/\%\>|\<\@\=(?:\w+|\{\w+\}|\\\w+)\>(?:.*(?:\<\@=(?:\w+|\{\w+\}|\\\w+)\>)?.+?(?:\<\/\@\>)?.*)+\<\/\@\>|\<\!\=[^\>]+\>(?:.*(?:\<\!=[^\>]+\>)?.+?(?:\<\/\!\>)?.*)+\<\/\!\>)/os,$i)){
+    $t =~ s/\"/\\\"/g;
+    if($t =~ s/\<\/\%\>$// && $t =~ s/^\<\%\=(\w+|\{\w+\}|\\\w+)\>//){
       my $n = $1;
-      $t =~ s/\r/\\r/g;
-      $t =~ s/\n/\\n/g;
       push(@o,_coloring("<\%=$n>$t</\%>",'c0c')) if ! $l && $f % 2;
-      $t = _extract_tags($t,$f,1) if $t =~ /\<([\@\%\!])\=(?:\([^\)]+\)|[^\>]+)\>.+\<\/\1\>/;
+      $t = _extract_tags($t,$f,1) if $t =~ /\<([\@\%\!])\=(\([^\)]+\)|[^\>]+)\>.+\<\/\1\>/;
       $n =~ s/^\{(\w+)\}$/{\$$1}/;
       $n =~ s/^\\(\w+)$/{\$$1}/;
       push(@o,_extract_hash($n,$t,$l));
-    } elsif($t =~ s/\<\/\@\>$// && $t =~ s/^\<\@\=([^\>]+)\>//){
+    } elsif($t =~ s/\<\/\@\>$// && $t =~ s/^\<\@\=(\w+|\{\w+\}|\\\w+)\>//){
       my $n = $1;
-      $t =~ s/\r/\\r/g;
-      $t =~ s/\n/\\n/g;
       push(@o,_coloring("<\@\=$n>$t</\@>",'c00')) if ! $l && $f % 2;
-      $t = _extract_tags($t,$f,1) if $t =~ /\<([\@\%\!])\=(?:\([^\)]+\)|[^\>]+)\>.+\<\/\1\>/;
+      $t = _extract_tags($t,$f,1) if $t =~ /\<([\@\%\!])\=(\([^\)]+\)|[^\>]+)\>.+\<\/\1\>/;
       $n =~ s/^\{(\w+)\}$/{\$$1}/;
       $n =~ s/^\\(\w+)$/{\$$1}/;
       push(@o,_extract_array($n,$t,$l));
     } elsif($t =~ s/\<\/\!\>$// && $t =~ s/^\<\!\=(\([^\)]+\)|[^\>]+)\>//){
       my $x = $1;
       push(@o,_coloring("<\!=$x>$t</\!>",'00c')) if ! $l && $f % 2;
-      $t =~ s/\r/\\r/g;
-      $t =~ s/\n/\\n/g;
       $t = _extract_tags($t,$f,1) if $t =~ /\<([\@\%\!])\=(?:\([^\)]+\)|[^\>]+)\>.+\<\/\1\>/;
       push(@o,_extract_bool($x,$t,$l));
     } else{
-      push(@o,_coloring($t,'999')) if ! $l && $f % 2;
-      push(@o,$l ? $t : qq[print "$t";]);
+      push(@o,$l ? $t : qq[\$ep->print("$t");]);
+    }
+  }
+  return wantarray ? @o : join '',@o;
+}
+sub _get_crlf{
+  my $c = shift;
+  $c =~ s/[^\r\n]//gs;
+  return $c;
+}
+sub _ignore_comments{
+  my($i,@o) = shift;
+  foreach my $t(split(/(\<\<[\"\'\`]?(\w+).+?\2)/s,$i)){
+    if($t =~ /^\w+$/){
+      next;
+    } elsif($t =~ /^\<\<[\"\'\`]?\w+/){
+      push(@o,$t);
+    } else{
+      $t =~ s/\x20*\/\*(.+?)\*\/\x20*/_get_crlf($1)/egos;
+      $t =~ s/(((?:qq?).|[\x22\x27\(\)\[\]\{\}]).*)[\x20]+?(\x23|\/\/).*(?!\1).*/$1/go;
+      push(@o,$t);
     }
   }
   return wantarray ? @o : join '',@o;
@@ -89,11 +100,9 @@ sub _init{
   foreach my $t(split(/(\<\$.+?\$\>)/s,$i)){
     if($t =~ s/^\<\$// && $t =~ s/\$\>$//m){
       push(@o,_coloring($t)) if $f % 2;
-      $t =~ s/\x20*\/\*.*?\*\/\x20*//gs;
-      $t =~ s/(((?:qq?).|[\x22\x27\(\)\[\]\{\}]).*)[\x20]+?(\x23|\/\/).*(?!\1).*/$1/g;
+      $t = _ignore_comments($t);
       push(@o,$t);
     } else{
-      $t =~ s/\x22/\\x22/g;
       $t = _extract_tags($t,$f,0);
       push(@o,$t);
     }
@@ -147,7 +156,7 @@ sub main{
       read HTM,$imp,(-s HTM);
       close HTM;
       $pos += $imp =~ s/^\#\![^\r\n]+(\r\n|[\r\n])//;
-      $pos += $imp =~ s/^(\r\n|[\r\n])//gs;
+      $pos += $imp =~ s/^(\r\n|[\r\n])//gos;
       $htm .= $imp;
     }
   }
@@ -175,7 +184,7 @@ sub main{
       $now = $pos;
       $pos += $epl =~ s/\r\n|[\r\n]/\n/gs;
       if(!_run($ref,$var,$epl) && $@){
-        $@ =~ s/at\x20\(eval\x20[0-9]+\)\x20line\x20([0-9]+)/'at line '.($now+($1-1))/eg;
+        $@ =~ s/at\x20\(eval\x20[0-9]+\)\x20line\x20([0-9]+)/'at line '.($now+($1-1))/ego;
         $@ =~ s/\x22/\&quot\;/g; chop $@;
         $tmp .= qq[<blockquote style="padding:4px;color:#c00;background-color:#fdd;border:solid 1px #f99;font-size:80%;"><span style="font-weight:bold;">ERROR:</span> $@</blockquote>\n];
         last if $@ =~ /^Force/;
@@ -186,7 +195,7 @@ sub main{
     local $SIG{ALRM} = sub{ die 'Forced exiting, detected loop'; };
     alarm $TIMEOUT;
     if(!_run($ref,$var,join('',@src)) && $@){
-      $@ =~ s/at\x20\(eval\x20[0-9]+\)\x20line\x20([0-9]+)/'at line'.($now+($1-1))/eg;
+      $@ =~ s/at\x20\(eval\x20[0-9]+\)\x20line\x20([0-9]+)/'at line'.($now+($1-1))/ego;
       $@ =~ s/\x22/\&quot\;/g; chop $@;
       $tmp .= qq[<h3 style="color:#600;font-weight:bold;">Encountered 500 Internal Server Error</h3>\n\n];
       $tmp .= qq[<blockquote style="padding:4px;color:#c00;background-color:#fdd;border:solid 1px #f99;font-size:80%;">$@</blockquote>\n];

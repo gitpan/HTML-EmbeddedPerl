@@ -4,7 +4,7 @@ twepl - The Perl embeddings for HTML.
 
 =head1 SYNOPSYS
 
-twepl -[ceo]+ -t:?X files...
+twepl B<-[ceo]+> B<-t:?X> B<files...>
 
 =head1 DESCRIPTION
 

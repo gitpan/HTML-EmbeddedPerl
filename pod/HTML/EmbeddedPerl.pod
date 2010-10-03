@@ -6,6 +6,20 @@ HTML::EmbeddedPerl - The Perl embeddings for HTML.
 
 I<automatic>.
 
+B<option> is B<0-1>
+
+  <$ my $test = 1; $>
+  <$ print $test $> # OK
+
+B<option> is B<2-3>
+
+  <$ my $test = 1; $>
+  <$ print $test $> # NG
+
+  <$ use vars qw($test); $test = 1; $ev::test = 1; $>
+  <$ print $test $> # OK
+  <$ print $ev::test $> # OK
+
 =head2 run in the automatically
 
 passing of instanced object B<$ep>.
@@ -63,6 +77,7 @@ write B<httpd.conf> or B<.htaccess>.
   </FilesMatch>
 
 needs most compatibility, use I<PerlResponseHandler perl-script>.
+*please do not use B<CORE::print>. (or call B<$ep->rflush()> needed)
 
 =head2 CGI
 
@@ -132,6 +147,8 @@ before calling sub B<ep()>
 
   $ep = HTML::EmbeddedPerl->new();
 
+=head1 FOR CGI METHODS
+
 =head2 flush
 
 flushing HTTP header.
@@ -171,7 +188,7 @@ ep(B<string>,B<option>)
 
 B<0> = default, execute only once.
 B<1> =  I<-- with coloring source>.
-B<2> = older version compatible, every tags every execute.
+B<2> = older version compatible, every tags execute.
 B<3> =  I<-- with coloring source>.
 B<4> = output internal code.
 B<5> =  I<-- with coloring source>.
@@ -182,7 +199,7 @@ B<#> comments
 B<//> comments
 B</*> comments B<*/>
 
-recommended use B</* */> and please do not put comments in the same line as the code if possible.
+please do not put comments if possible.
 
 =head1 BETA Features
 

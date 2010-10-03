@@ -1,0 +1,100 @@
+<html>
+<head>
+<title>The test of HTML::EmbeddedPerl(BETA)</title>
+</head>
+<body>
+
+<h2>The test of HTML::EmbeddedPerl(BETA)</h2>
+
+<p>
+<span style="color:#090;">(source-code is visible green)</span>
+</p>
+
+<$ use vars qw($qqq @xxx %zzz $flg); $qqq = "OK."; #13 no strict; no warnings; $>
+
+<hr />
+
+<p><$ /*
+comment 18
+ comment 19
+  comment 20
+   comment 21
+    comment 22
+     comment 23
+      comment 24
+       comment 25
+        comment 26
+*/
+foreach(sort keys %ENV){ //28
+  print STDOUT "$_: $ENV{$_}<br />\n"; //29
+} //30
+$></p>
+
+<hr />
+
+<p><$ $ep->print(<<__EOP__);
+/* comments 36 */<br />
+// comments 37<br />
+# comments 38<br />
+__EOP__ /*39*/
+$></p>
+
+<hr />
+
+<p><$ $ep->print("# $qqq"); #44 $></p>
+
+<p>\$qqq = <span style="color:#f90;">$qqq</span></p>
+
+<hr />
+
+<$ @xxx = ("a".."c"); #50 $>
+
+<@=xxx><p>$_</p>\n</@>
+
+<p>\@xxx = <span style="color:#f90;">@xxx</span></p>
+
+<hr />
+
+<$ %zzz = ("a"=>[1,2,3],"b"=>[4,5,6]); #58 $>
+
+<table border="0" cellspacing="2" cellpadding="1">
+<%=zzz><tr><th>$k</th><@={v}><td>$_</td></@></tr>\n</%>
+</table>
+
+<p>\@\{\$zzz{a}\} = <span style="color:#f90;">@{$zzz{a}}</span></p>
+<p>\@\{\$zzz{b}\} = <span style="color:#f90;">@{$zzz{b}}</span></p>
+
+<hr />
+
+<$ $flg = 1; #69 $>
+<!=$flg><p>1</p><!=!$flg><p>0</p><!><p>?</p></!>
+
+<hr />
+
+<p><$ $ep->print(ref($ep)); #74 $></p>
+
+<hr />
+
+<p><$ $ep->print(ref($ev)); #78 $></p>
+
+<hr />
+
+<p>define subroutine.</p>
+<$ sub test_print{ $ep->print('OK.'); } //83 $>
+
+<hr />
+
+<p><$ &test_print; /* 87 */ $></p>
+
+<hr />
+
+<p><$ $ep->print('test'); //91 $></p>
+
+<$ $ep->header_out('Content-Create','foo'); /* 93 */ $>
+
+<hr />
+
+<div>$ENV{SERVER_SOFTWARE}</div>
+
+</body>
+</html>

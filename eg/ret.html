@@ -1,0 +1,100 @@
+<html>
+<head>
+<title>The test of HTML::EmbeddedPerl(BETA)</title>
+</head>
+<body>
+
+<h2>The test of HTML::EmbeddedPerl(BETA)</h2>
+
+<p>
+<span style="color:#090;">(source-code is visible green)</span>
+</p>
+
+<blockquote style="color:#090;">&nbsp;use&nbsp;vars&nbsp;qw($qqq&nbsp;@xxx&nbsp;%zzz&nbsp;$flg);&nbsp;$qqq&nbsp;=&nbsp;&quot;OK.&quot;;&nbsp;#13&nbsp;no&nbsp;strict;&nbsp;no&nbsp;warnings;&nbsp;</blockquote>
+
+<hr />
+
+<p><blockquote style="color:#090;">&nbsp;/*<br />comment&nbsp;18<br />&nbsp;comment&nbsp;19<br />&nbsp;&nbsp;comment&nbsp;20<br />&nbsp;&nbsp;&nbsp;comment&nbsp;21<br />&nbsp;&nbsp;&nbsp;&nbsp;comment&nbsp;22<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;comment&nbsp;23<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;comment&nbsp;24<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;comment&nbsp;25<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;comment&nbsp;26<br />*/<br />foreach(sort&nbsp;keys&nbsp;%ENV){&nbsp;//28<br />&nbsp;&nbsp;print&nbsp;STDOUT&nbsp;&quot;$_:&nbsp;$ENV{$_}&lt;br&nbsp;/&gt;\n&quot;;&nbsp;//29<br />}&nbsp;//30</blockquote>
+GATEWAY_INTERFACE: CGI/1.1<br />
+QUERY_STRING: <br />
+REDIRECT_HANDLER: application/x-embeddedperl-test<br />
+REDIRECT_STATUS: 200<br />
+REQUEST_METHOD: GET<br />
+SERVER_PORT: 80<br />
+SERVER_PROTOCOL: HTTP/1.1<br />
+SERVER_SIGNATURE: <address>Apache</address>
+<br />
+SERVER_SOFTWARE: Apache<br />
+</p>
+
+<hr />
+
+<p><blockquote style="color:#090;">&nbsp;$ep-&gt;print(&lt;&lt;__EOP__);<br />/*&nbsp;comments&nbsp;36&nbsp;*/&lt;br&nbsp;/&gt;<br />//&nbsp;comments&nbsp;37&lt;br&nbsp;/&gt;<br />#&nbsp;comments&nbsp;38&lt;br&nbsp;/&gt;<br />__EOP__&nbsp;/*39*/</blockquote>/* comments 36 */<br />
+// comments 37<br />
+# comments 38<br />
+</p>
+
+<hr />
+
+<p><blockquote style="color:#090;">&nbsp;$ep-&gt;print(&quot;#&nbsp;$qqq&quot;);&nbsp;#44&nbsp;</blockquote># OK.</p>
+
+<p>$qqq = <span style="color:#f90;">OK.</span></p>
+
+<hr />
+
+<blockquote style="color:#090;">&nbsp;@xxx&nbsp;=&nbsp;(&quot;a&quot;..&quot;c&quot;);&nbsp;#50&nbsp;</blockquote>
+
+<blockquote style="color:#c00;">&lt;@=xxx&gt;&lt;p&gt;$_&lt;/p&gt;\n&lt;/@&gt;</blockquote><p>a</p>
+<p>b</p>
+<p>c</p>
+
+
+<p>@xxx = <span style="color:#f90;">a b c</span></p>
+
+<hr />
+
+<blockquote style="color:#090;">&nbsp;%zzz&nbsp;=&nbsp;(&quot;a&quot;=&gt;[1,2,3],&quot;b&quot;=&gt;[4,5,6]);&nbsp;#58&nbsp;</blockquote>
+
+<table border="0" cellspacing="2" cellpadding="1">
+<blockquote style="color:#c0c;">&lt;%=zzz&gt;&lt;tr&gt;&lt;th&gt;$k&lt;/th&gt;&lt;@={v}&gt;&lt;td&gt;$_&lt;/td&gt;&lt;/@&gt;&lt;/tr&gt;\n&lt;/%&gt;</blockquote><tr><th>a</th><td>1</td><td>2</td><td>3</td></tr>
+<tr><th>b</th><td>4</td><td>5</td><td>6</td></tr>
+
+</table>
+
+<p>@{$zzz{a}} = <span style="color:#f90;">1 2 3</span></p>
+<p>@{$zzz{b}} = <span style="color:#f90;">4 5 6</span></p>
+
+<hr />
+
+<blockquote style="color:#090;">&nbsp;$flg&nbsp;=&nbsp;1;&nbsp;#69&nbsp;</blockquote>
+<blockquote style="color:#00c;">&lt;!=$flg&gt;&lt;p&gt;1&lt;/p&gt;&lt;!=!$flg&gt;&lt;p&gt;0&lt;/p&gt;&lt;!&gt;&lt;p&gt;?&lt;/p&gt;&lt;/!&gt;</blockquote><p>1</p>
+
+<hr />
+
+<p><blockquote style="color:#090;">&nbsp;$ep-&gt;print(ref($ep));&nbsp;#74&nbsp;</blockquote>HTML::EmbeddedPerl</p>
+
+<hr />
+
+<p><blockquote style="color:#090;">&nbsp;$ep-&gt;print(ref($ev));&nbsp;#78&nbsp;</blockquote>HTML::EmbeddedPerl::Vars</p>
+
+<hr />
+
+<p>define subroutine.</p>
+<blockquote style="color:#090;">&nbsp;sub&nbsp;test_print{&nbsp;$ep-&gt;print('OK.');&nbsp;}&nbsp;//83&nbsp;</blockquote>
+
+<hr />
+
+<p><blockquote style="color:#090;">&nbsp;&amp;test_print;&nbsp;/*&nbsp;87&nbsp;*/&nbsp;</blockquote>OK.</p>
+
+<hr />
+
+<p><blockquote style="color:#090;">&nbsp;$ep-&gt;print('test');&nbsp;//91&nbsp;</blockquote>test</p>
+
+<blockquote style="color:#090;">&nbsp;$ep-&gt;header_out('Content-Create','foo');&nbsp;/*&nbsp;93&nbsp;*/&nbsp;</blockquote>
+
+<hr />
+
+<div>Apache</div>
+
+</body>
+</html>

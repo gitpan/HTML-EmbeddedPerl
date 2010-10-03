@@ -8,6 +8,8 @@ bin/twres.rc
 Changes
 doc/HTML/EmbeddedPerl.html
 doc/twepl.html
+eg/eg.phtml
+eg/ret.html
 lib/HTML/EmbeddedPerl.pm
 Makefile.PL
 MANIFEST

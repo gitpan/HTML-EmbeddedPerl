@@ -9,7 +9,7 @@ our @ISA       = qw(Exporter);
 our @EXPORT    = qw(ep);
 our @EXPORT_OK = qw($VERSION $TIMEOUT);
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 our $TIMEOUT = 2;
 
 my $STDBAK = *STDOUT;
@@ -17,18 +17,18 @@ my $STDBAK = *STDOUT;
 sub _coloring{
   my($e,$c) = ($_[0],$_[1] ? $_[1] : '090');
   $c =~ s/^\x23//;
-  $e =~ s/^[\r\n]*//g;
-  $e =~ s/[\r\n]*$//g;
-  $e =~ s/\\(?!x22)/\\\\/g;
-  $e =~ s/\$/\\\$/g;
-  $e =~ s/\@/\\\@/g;
-  $e =~ s/\%/\\\%/g;
-  $e =~ s/\&/\&amp;/g;
-  $e =~ s/\x20/\&nbsp;/g;
-  $e =~ s/\</\&lt;/g;
-  $e =~ s/\>/\&gt;/g;
-  $e =~ s/\"/\&quot;/g;
-  $e =~ s/\r\n|[\r\n]/\<br\x20\/\>/g;
+  $e =~ s/\&/\&amp;/go;
+  $e =~ s/\x20/\&nbsp;/go;
+  $e =~ s/\</\&lt;/go;
+  $e =~ s/\>/\&gt;/go;
+  $e =~ s/\"/\&quot;/go;
+  $e =~ s/^[\r\n]*//go;
+  $e =~ s/[\r\n]*$//go;
+  $e =~ s/\r\n|[\r\n]/\<br\x20\/\>/go;
+  $e =~ s/\\(?!\")/\\\\/go;
+  $e =~ s/\$/\\\$/go;
+  $e =~ s/\@/\\\@/go;
+  $e =~ s/\%/\\\%/go;
   return qq[\$ep->print("<blockquote style=\\x22color:#$c;\\x22>$e</blockquote>");];
 }
 sub _extract_hash{
@@ -46,45 +46,65 @@ sub _extract_array{
 sub _extract_bool{
   my($x,$t,$l) = @_;
   my $r = qq[{ if($x){ \$ep->print("$t") }};];
-  $r =~ s/\<\!\=([^\>]+)\>/"); } elsif($1) { \$ep->print("/gs;
-  $r =~ s/\<\!\>/"); } else { \$ep->print("/s;
+  $r =~ s/\<\!\=([^\>]+)\>/"); } elsif($1) { \$ep->print("/gos;
+  $r =~ s/\<\!\>/"); } else { \$ep->print("/os;
   $r = qq["); $r \$ep->print("] if $l;
   return $r;
 }
 sub _extract_tags{
   my($i,$f,$l,@o) = (shift,shift,shift);
-  foreach my $t(split(/(\<([\@\%\!])\=(?:\([^\)]+\)|[^\>]+)\>.+?\<\/\2\>)/s,$i)){
-    $t =~ s/\x22/\\\\x22/g;
-    if($t =~ /^[\%\@\!]$/){
-      next;
-    } elsif($t =~ s/\<\/\%\>$// && $t =~ s/^\<\%\=([^\>]+)\>//){
+  foreach my $t(split(/(\<\%\=(?:\w+|\{\w+\}|\\\w+)\>(?:.*(?:\<\%=(?:\w+|\{\w+\}|\\\w+)\>)?.+?(?:\<\/\%\>)?.*)+\<\/\%\>|\<\@\=(?:\w+|\{\w+\}|\\\w+)\>(?:.*(?:\<\@=(?:\w+|\{\w+\}|\\\w+)\>)?.+?(?:\<\/\@\>)?.*)+\<\/\@\>|\<\!\=[^\>]+\>(?:.*(?:\<\!=[^\>]+\>)?.+?(?:\<\/\!\>)?.*)+\<\/\!\>)/os,$i)){
+    $t =~ s/\"/\\\"/g;
+    if($t =~ s/\<\/\%\>$// && $t =~ s/^\<\%\=(\w+|\{\w+\}|\\\w+)\>//){
       my $n = $1;
-      $t =~ s/\r/\\r/g;
-      $t =~ s/\n/\\n/g;
       push(@o,_coloring("<\%=$n>$t</\%>",'c0c')) if ! $l && $f % 2;
-      $t = _extract_tags($t,$f,1) if $t =~ /\<([\@\%\!])\=(?:\([^\)]+\)|[^\>]+)\>.+\<\/\1\>/;
+      $t = _extract_tags($t,$f,1) if $t =~ /\<([\@\%\!])\=(\([^\)]+\)|[^\>]+)\>.+\<\/\1\>/;
       $n =~ s/^\{(\w+)\}$/{\$$1}/;
       $n =~ s/^\\(\w+)$/{\$$1}/;
       push(@o,_extract_hash($n,$t,$l));
-    } elsif($t =~ s/\<\/\@\>$// && $t =~ s/^\<\@\=([^\>]+)\>//){
+    } elsif($t =~ s/\<\/\@\>$// && $t =~ s/^\<\@\=(\w+|\{\w+\}|\\\w+)\>//){
       my $n = $1;
-      $t =~ s/\r/\\r/g;
-      $t =~ s/\n/\\n/g;
       push(@o,_coloring("<\@\=$n>$t</\@>",'c00')) if ! $l && $f % 2;
-      $t = _extract_tags($t,$f,1) if $t =~ /\<([\@\%\!])\=(?:\([^\)]+\)|[^\>]+)\>.+\<\/\1\>/;
+      $t = _extract_tags($t,$f,1) if $t =~ /\<([\@\%\!])\=(\([^\)]+\)|[^\>]+)\>.+\<\/\1\>/;
       $n =~ s/^\{(\w+)\}$/{\$$1}/;
       $n =~ s/^\\(\w+)$/{\$$1}/;
       push(@o,_extract_array($n,$t,$l));
     } elsif($t =~ s/\<\/\!\>$// && $t =~ s/^\<\!\=(\([^\)]+\)|[^\>]+)\>//){
       my $x = $1;
       push(@o,_coloring("<\!=$x>$t</\!>",'00c')) if ! $l && $f % 2;
-      $t =~ s/\r/\\r/g;
-      $t =~ s/\n/\\n/g;
       $t = _extract_tags($t,$f,1) if $t =~ /\<([\@\%\!])\=(?:\([^\)]+\)|[^\>]+)\>.+\<\/\1\>/;
       push(@o,_extract_bool($x,$t,$l));
     } else{
-      push(@o,_coloring($t,'999')) if ! $l && $f % 2;
+      #push(@o,_coloring($t,'999')) if ! $l && $f % 2;
       push(@o,$l ? $t : qq[\$ep->print("$t");]);
+    }
+  }
+  return wantarray ? @o : join '',@o;
+}
+sub _reprint{
+  my($r1,$r2,$r3,$r4,$r5,$r6,$r7,$r8,$r9) = @_;
+  my $ret = "$r1\$ep->print($r2";
+  $ret .= ')' if $3;
+  $ret .= "$r4$r5$r6";
+  $ret .= $r3 ? $r7 : "$r7$r8)$r9";
+  return $ret;
+}
+sub _get_crlf{
+  my $c = shift;
+  $c =~ s/[^\r\n]//gs;
+  return $c;
+}
+sub _ignore_comments{
+  my($i,@o) = shift;
+  foreach my $t(split(/(\<\<[\"\'\`]?(\w+).+?\2)/s,$i)){
+    if($t =~ /^\w+$/){
+      next;
+    } elsif($t =~ /^\<\<[\"\'\`]?\w+/){
+      push(@o,$t);
+    } else{
+      $t =~ s/\x20*\/\*(.+?)\*\/\x20*/_get_crlf($1)/egos;
+      $t =~ s/(((?:qq?).|[\x22\x27\(\)\[\]\{\}]).*)[\x20]+?(\x23|\/\/).*(?!\1).*/$1/go;
+      push(@o,$t);
     }
   }
   return wantarray ? @o : join '',@o;
@@ -94,13 +114,11 @@ sub _init{
   my($d);
   foreach my $t(split(/(\<\$.+?\$\>)/s,$i)){
     if($t =~ s/^\<\$// && $t =~ s/\$\>$//m){
-      $t =~ s/(?<!\$ep\-\>)([\s\;])print\s*(?:[\$\*\w]*(?:\(\))?)\s*(?<!\<\<)(q[qw]?)?([\(\[\{]?)(.)(.+?)(\4)([\)\]\}])?(\;?)/$1\$ep\-\>print($2$3$4$5$6$7)$8/gs if exists $ENV{MOD_PERL};
       push(@o,_coloring($t)) if $f % 2;
-      $t =~ s/\x20*\/\*.*?\*\/\x20*//gs;
-      $t =~ s/(((?:qq?).|[\x22\x27\(\)\[\]\{\}]).*)[\x20]+?(\x23|\/\/).*(?!\1).*/$1/g;
+      $t =~ s/(?<!\$ep\-\>)([\s\;])print\s*(?:[\$\*\w]*(?:\(\))?)\s*(q[qw]?|\<\<[\"\'\`]?(\w+))?([\(\[\{]?)(.)(.+?)(\3|\5)([\)\]\}])?(\;?)/_reprint($1,$2,$3,$4,$5,$6,$7,$8,$9)/egs if exists $ENV{MOD_PERL};
+      $t = _ignore_comments($t);
       push(@o,$t);
     } else{
-      $t =~ s/\x22/\\x22/g;
       $t = _extract_tags($t,$f,0);
       push(@o,$t);
     }
@@ -118,6 +136,9 @@ sub header_out{
   }
   push(@{$_[0]->{head}},"$_[1]: $_[2]") if(!$f);
 }
+sub header{
+  my($o,$h) = (shift,shift); my($k,$v) = split(/\:\s+/,$h,2); header_out($o,$k,$v);
+}
 sub content_type{
   $_[0]->{type} = $_[1];
 }
@@ -125,6 +146,9 @@ sub flush{
   print $STDBAK (@{$_[0]->{head}} ? join("\r\n",@{$_[0]->{head}})."\r\n":'')."Content-Type: $_[0]->{type}\r\n\r\n";
 }
 sub print{
+  shift if ref $_[0] eq __PACKAGE__; CORE::print @_;
+}
+sub echo{
   shift if ref $_[0] eq __PACKAGE__; CORE::print @_;
 }
 
@@ -152,7 +176,7 @@ sub ep{
       $now = $pos;
       $pos += $epl =~ s/\r\n|[\r\n]/\n/gs;
       if(!_run($ref,$var,$epl) && $@){
-        $@ =~ s/at\x20\(eval\x20[0-9]+\)\x20line\x20([0-9]+)/'at line '.($now+($1-1))/eg;
+        $@ =~ s/at\x20\(eval\x20[0-9]+\)\x20line\x20([0-9]+)/'at line '.($now+($1-1))/ego;
         $@ =~ s/\x22/\&quot\;/g; chop $@;
         my $ret = qq[<blockquote style="padding:4px;color:#c00;background-color:#fdd;border:solid 1px #f99;font-size:80%;"><span style="font-weight:bold;">ERROR:</span> $@</blockquote>\n];
         exists $ENV{MOD_PERL} ? $ref->print($ret) : $tmp .= $ret;
@@ -163,7 +187,7 @@ sub ep{
     local $SIG{ALRM} = sub{ die 'Forced exiting, detected loop'; };
     alarm $TIMEOUT;
     if(!_run($ref,$var,join('',@src)) && $@){
-      $@ =~ s/at\x20\(eval\x20[0-9]+\)\x20line\x20([0-9]+)/at line $1/g;
+      $@ =~ s/at\x20\(eval\x20[0-9]+\)\x20line\x20([0-9]+)/at line $1/go;
       $@ =~ s/\x22/\&quot\;/g; chop $@;
       my $ret = qq[<h3 style="color:#600;font-weight:bold;">Encountered 500 Internal Server Error</h3>\n\n];
       $ret .= qq[<blockquote style="padding:4px;color:#c00;background-color:#fdd;border:solid 1px #f99;font-size:80%;">$@</blockquote>\n];
@@ -209,6 +233,20 @@ HTML::EmbeddedPerl - The Perl embeddings for HTML.
 =head1 SYNOPSYS
 
 I<automatic>.
+
+B<option> is B<0-1>
+
+  <$ my $test = 1; $>
+  <$ print $test $> # OK
+
+B<option> is B<2-3>
+
+  <$ my $test = 1; $>
+  <$ print $test $> # NG
+
+  <$ use vars qw($test); $test = 1; $ev::test = 1; $>
+  <$ print $test $> # OK
+  <$ print $ev::test $> # OK
 
 =head2 run in the automatically
 
@@ -267,6 +305,7 @@ write B<httpd.conf> or B<.htaccess>.
   </FilesMatch>
 
 needs most compatibility, use I<PerlResponseHandler perl-script>.
+*please do not use B<CORE::print>. (or call B<$ep->rflush()> needed)
 
 =head2 CGI
 
@@ -336,6 +375,8 @@ before calling sub B<ep()>
 
   $ep = HTML::EmbeddedPerl->new();
 
+=head1 FOR CGI METHODS
+
 =head2 flush
 
 flushing HTTP header.
@@ -375,7 +416,7 @@ ep(B<string>,B<option>)
 
 B<0> = default, execute only once.
 B<1> =  I<-- with coloring source>.
-B<2> = older version compatible, every tags every execute.
+B<2> = older version compatible, every tags execute.
 B<3> =  I<-- with coloring source>.
 B<4> = output internal code.
 B<5> =  I<-- with coloring source>.
@@ -386,7 +427,7 @@ B<#> comments
 B<//> comments
 B</*> comments B<*/>
 
-recommended use B</* */> and please do not put comments in the same line as the code if possible.
+please do not put comments if possible.
 
 =head1 BETA Features
 

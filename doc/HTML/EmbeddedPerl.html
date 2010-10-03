@@ -18,7 +18,7 @@ blockquote{margin:8px;padding:8px;border:solid 1px #9bd;background-color:#eff9ff
 <a id="___top" name="___top">
 <h2>INDEX</h2>
 <p>
-&nbsp;&nbsp;&nbsp;<a href="#NAME">NAME</a><br />&nbsp;&nbsp;&nbsp;<a href="#SYNOPSYS">SYNOPSYS</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#run_in_the_automatically">run in the automatically</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#using_in_the_script">using in the script</a><br />&nbsp;&nbsp;&nbsp;<a href="#DESCRIPTION">DESCRIPTION</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#DESCRIPTION_mod_perl2">mod_perl2</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#DESCRIPTION_CGI">CGI</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#DESCRIPTION_Wrapper">Wrapper</a><br />&nbsp;&nbsp;&nbsp;<a href="#TIMEOUT">TIMEOUT</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#TIMEOUT_mod_perl2">mod_perl2</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#TIMEOUT_CGI">CGI</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#TIMEOUT_Wrapper">Wrapper</a><br />&nbsp;&nbsp;&nbsp;<a href="#INTERNAL_METHODS">INTERNAL METHODS</a><br />&nbsp;&nbsp;&nbsp;<a href="#BASIC_METHODS">BASIC METHODS</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ep">ep</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#new">new</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#flush">flush</a><br />&nbsp;&nbsp;&nbsp;<a href="#COMPATIBLE_METHODS">COMPATIBLE METHODS</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#header_out">header_out</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#content_type">content_type</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#print">print</a><br />&nbsp;&nbsp;&nbsp;<a href="#OTHER_METHODS">OTHER METHODS</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OTHER_METHODS_mod_perl2">mod_perl2</a><br />&nbsp;&nbsp;&nbsp;<a href="#EXPORTS">EXPORTS</a><br />&nbsp;&nbsp;&nbsp;<a href="#OPTIONS">OPTIONS</a><br />&nbsp;&nbsp;&nbsp;<a href="#COMMENTS">COMMENTS</a><br />&nbsp;&nbsp;&nbsp;<a href="#BETA_Features">BETA Features</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Boolean_Expression">Boolean Expression</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Extract_Array">Extract Array</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Extract_Hash">Extract Hash</a><br />&nbsp;&nbsp;&nbsp;<a href="#AUTHOR">AUTHOR</a><br />&nbsp;&nbsp;&nbsp;<a href="#COPYRIGHT">COPYRIGHT</a><br />&nbsp;&nbsp;&nbsp;<a href="#LISENCE">LISENCE</a><br />
+&nbsp;&nbsp;&nbsp;<a href="#NAME">NAME</a><br />&nbsp;&nbsp;&nbsp;<a href="#SYNOPSYS">SYNOPSYS</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#run_in_the_automatically">run in the automatically</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#using_in_the_script">using in the script</a><br />&nbsp;&nbsp;&nbsp;<a href="#DESCRIPTION">DESCRIPTION</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#DESCRIPTION_mod_perl2">mod_perl2</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#DESCRIPTION_CGI">CGI</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#DESCRIPTION_Wrapper">Wrapper</a><br />&nbsp;&nbsp;&nbsp;<a href="#TIMEOUT">TIMEOUT</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#TIMEOUT_mod_perl2">mod_perl2</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#TIMEOUT_CGI">CGI</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#TIMEOUT_Wrapper">Wrapper</a><br />&nbsp;&nbsp;&nbsp;<a href="#INTERNAL_METHODS">INTERNAL METHODS</a><br />&nbsp;&nbsp;&nbsp;<a href="#BASIC_METHODS">BASIC METHODS</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ep">ep</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#new">new</a><br />&nbsp;&nbsp;&nbsp;<a href="#FOR_CGI_METHODS">FOR CGI METHODS</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FOR_CGI_METHODS_flush">flush</a><br />&nbsp;&nbsp;&nbsp;<a href="#COMPATIBLE_METHODS">COMPATIBLE METHODS</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#header_out">header_out</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#content_type">content_type</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#print">print</a><br />&nbsp;&nbsp;&nbsp;<a href="#OTHER_METHODS">OTHER METHODS</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OTHER_METHODS_mod_perl2">mod_perl2</a><br />&nbsp;&nbsp;&nbsp;<a href="#EXPORTS">EXPORTS</a><br />&nbsp;&nbsp;&nbsp;<a href="#OPTIONS">OPTIONS</a><br />&nbsp;&nbsp;&nbsp;<a href="#COMMENTS">COMMENTS</a><br />&nbsp;&nbsp;&nbsp;<a href="#BETA_Features">BETA Features</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Boolean_Expression">Boolean Expression</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Extract_Array">Extract Array</a><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Extract_Hash">Extract Hash</a><br />&nbsp;&nbsp;&nbsp;<a href="#AUTHOR">AUTHOR</a><br />&nbsp;&nbsp;&nbsp;<a href="#COPYRIGHT">COPYRIGHT</a><br />&nbsp;&nbsp;&nbsp;<a href="#LISENCE">LISENCE</a><br />
 </p>
 <a id="NAME"></a><h1>NAME <a href="#___top">&uarr;</a></h1>
 <p>
@@ -28,6 +28,24 @@ HTML::EmbeddedPerl - The Perl embeddings for HTML.
 <p>
 <span class="i">automatic</span>.
 </p>
+<p>
+<span class="b">option</span> is <span class="b">0-1</span>
+</p>
+<blockquote>
+<$ my $test = 1; $><br />
+<$ print $test $> # OK
+</blockquote>
+<p>
+<span class="b">option</span> is <span class="b">2-3</span>
+</p>
+<blockquote>
+<$ my <span style="color:#f80;">$test = 1; $><br />
+<$ print <span style="color:#f80;">$test $> # NG<br />
+<br />
+<$ use vars qw(<span style="color:#f80;">$test</span>); <span style="color:#f80;">$test</span> = 1; <span style="color:#f80;">$ev::test</span> = 1; $><br />
+<$ print $test</span> $> # OK</span><br />
+<$ print $ev::test</span> $> # OK</span><br />
+</blockquote>
 <a id="run_in_the_automatically"></a><h2>run in the automatically</h2>
 <p>
 passing of instanced object <span class="b">$ep</span>.<br />
@@ -87,7 +105,8 @@ PerlOptions +ParseHeaders<br />
 &lt;/FilesMatch&gt;
 </blockquote>
 <p>
-needs most compatibility, use <span class="i">PerlResponseHandler perl-script</span>.
+needs most compatibility, use <span class="i">PerlResponseHandler perl-script</span>.<br />
+*please do not use <span class="b">CORE::print</span>. (or call <span class="b">$ep->rflush()</span> needed)
 </p>
 <a id="DESCRIPTION_CGI"></a><h2>CGI</h2>
 <p>
@@ -162,7 +181,8 @@ ep(<span style="color:#f80;">$string</span>,<span style="color:#f80;">$option</s
 <blockquote>
 <span style="color:#f80;">$ep</span> = HTML::EmbeddedPerl-&gt;<span style="color:#00f;">new</span>();
 </blockquote>
-<a id="flush"></a><h2>flush</h2>
+<a id="FOR_CGI_METHODS"></a><h1>FOR CGI METHODS <a href="#___top">&uarr;</a></h1>
+<a id="FOR_CGI_METHODS_flush"></a><h2>flush</h2>
 <p>
 flushing HTTP header.
 </p>
@@ -214,7 +234,7 @@ ep(<span class="b">string</span>,<span class="b">option</span>)<br />
 <span class="b">/*</span> comments <span class="b">*/</span>
 </p>
 <p>
-recommended use <span class="b">/* */</span> and please do not put comments in the same line as the code if possible.<br />
+please do not put comments if possible.
 </p>
 <a id="BETA_Features"></a><h1>BETA Features <a href="#___top">&uarr;</a></h1>
 <p>
@@ -224,10 +244,12 @@ case of extract scalar in non-code blocks.
 &lt;$ <span style="color:#00f;">my</span> <span style="color:#f80;">$scalar</span> = <span style="color:#488;">'this is scalar'</span>; $&gt;<br />
 &lt;p&gt;<span style="color:#f80;">$scalar</span>&lt;/p&gt;<br />
 ...<br />
-&lt;p&gt;this is <span style="color:#00f;">scalar</span>&lt;/p&gt;<br />
-<br />
-<span style="color:#00f;">if</span> you want not extract vars, please <span style="color:#00f;">use</span> escape sequence <span class="b">'\'</span>.<br />
-<br />
+&lt;p&gt;this is scalar&lt;/p&gt;
+</blockquote>
+<p>
+if you want not extract vars, please use escape sequence <span class="b">'\'</span>.
+</p>
+<blockquote>
 &lt;p&gt;<span style="color:#f80;">\$scalar</span>&lt;/p&gt;<br />
 ...<br />
 &lt;p&gt;<span style="color:#f80;">$scalar</span>&lt;/p&gt;
