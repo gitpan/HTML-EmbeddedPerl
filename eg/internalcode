@@ -1,0 +1,101 @@
+#!twepl
+
+<:print "<html>
+<head>
+<title>The test of HTML::EmbeddedPerl(BETA)</title>
+</head>
+<body>
+
+<h2>The test of HTML::EmbeddedPerl(BETA)</h2>
+
+<p>
+<span style=\"color:#090;\">(source-code is visible green)</span>
+</p>
+
+"; use vars qw($qqq @xxx %zzz $flg); $qqq = "OK."; print "
+
+<hr />
+
+<p>";
+
+
+
+
+
+
+
+
+
+
+foreach(sort keys %ENV){
+  print STDOUT "$_: $ENV{$_}<br />\n";
+}
+print "</p>
+
+<hr />
+
+<p>"; $ep->print(<<__EOP__);
+/* comments 36 */<br />
+// comments 37<br />
+# comments 38<br />
+__EOP__
+print "</p>
+
+<hr />
+
+<p>"; $ep->print("# $qqq"); print "</p>
+
+<p>\$qqq = <span style=\"color:#f90;\">$qqq</span></p>
+
+<hr />
+
+"; @xxx = ("a".."c"); print "
+
+";{ my($c0,$n0) = (scalar(@xxx),'xxx'); for(my $i=0;$i<@xxx;$i++){ $_ = $xxx[$i]; print "<p>$_</p>\n"; }}print "
+
+<p>\@xxx = <span style=\"color:#f90;\">@xxx</span></p>
+
+<hr />
+
+"; %zzz = ("a"=>[1,2,3],"b"=>[4,5,6]); print "
+
+<table border=\"0\" cellspacing=\"2\" cellpadding=\"1\">
+";{ my($c0,$n0) = (scalar(keys %zzz),'zzz'); foreach my $k0(keys %zzz){ my $v0 = $zzz{$k0}; print "<tr><th>$k0</th>"; { my($c1,$n1) = (scalar(@{$v0}),'{$v0}'); for(my $i=0;$i<@{$v0};$i++){ $_ = ${$v0}[$i]; print "<td>$_</td>"; }} print "</tr>\n"; }}print "
+</table>
+
+<p>\@\{\$zzz{a}\} = <span style=\"color:#f90;\">@{$zzz{a}}</span></p>
+<p>\@\{\$zzz{b}\} = <span style=\"color:#f90;\">@{$zzz{b}}</span></p>
+
+<hr />
+
+"; $flg = 1; print "# not comment<br />\n"; print "
+";{ if($flg){ print "<p>1</p>"; } elsif(!$flg) { print "<p>0</p>"; } else { print "<p>?</p>"; }}print "
+
+<hr />
+
+<p>"; $ep->print(ref($ep)); print "</p>
+
+<hr />
+
+<p>"; $ep->print(ref($ev)); print "</p>
+
+<hr />
+
+<p>define subroutine.</p>
+"; sub test_print{ $ep->print('OK.'); } print "
+
+<hr />
+
+<p>"; &test_print; print "</p>
+
+<hr />
+
+"; $ep->header_out('Content-Create','foo'); print "
+
+<hr />
+
+<div>$ENV{SERVER_SOFTWARE}</div>
+
+</body>
+</html>
+";:>

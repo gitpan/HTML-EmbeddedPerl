@@ -3,7 +3,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
   NAME          => 'HTML::EmbeddedPerl',
   ABSTRACT_FROM => 'lib/HTML/EmbeddedPerl.pm',
-  AUTHOR        => 'Twinkle Computing <twinkle@cpan.org>',
+  AUTHOR        => 'TWINKLE COMPUTING <twinkle@cpan.org>',
   LICENSE       => 'perl',
   VERSION_FROM  => 'lib/HTML/EmbeddedPerl.pm',
   INST_SCRIPT   => 'blib/bin',

@@ -7,10 +7,10 @@
 <h2>The test of HTML::EmbeddedPerl(BETA)</h2>
 
 <p>
-ModPerl
+<span style="color:#090;">(source-code is visible green)</span>
 </p>
 
-<$ use vars qw($qqq @xxx %zzz $flg); $qqq = "OK."; #13 no strict; no warnings; $>
+<$ use vars qw($qqq @xxx %zzz $flg); $qqq = "OK."; $>
 
 <hr />
 
@@ -41,7 +41,7 @@ $></p>
 
 <hr />
 
-<p><$ $ep->print("# $qqq"); #44 $></p><!--Y-->
+<p><$ $ep->print("# $qqq"); #44 $></p>
 
 <p>\$qqq = <span style="color:#f90;">$qqq</span></p>
 
@@ -49,7 +49,7 @@ $></p>
 
 <$ @xxx = ("a".."c"); #50 $><!--Y-->
 
-<@=xxx><p>$_</p>\n</@>
+<@xxx><p>$_</p>\n</@>
 
 <p>\@xxx = <span style="color:#f90;">@xxx</span></p>
 
@@ -58,7 +58,7 @@ $></p>
 <$ %zzz = ("a"=>[1,2,3],"b"=>[4,5,6]); #58 $><!--Y-->
 
 <table border="0" cellspacing="2" cellpadding="1">
-<%=zzz><tr><th>$k</th><@={v}><td>$_</td></@></tr>\n</%>
+<%zzz><tr><th>$k0</th><\@v0><td>$_</td></@></tr>\n</%>
 </table>
 
 <p>\@\{\$zzz{a}\} = <span style="color:#f90;">@{$zzz{a}}</span></p>
@@ -67,7 +67,7 @@ $></p>
 <hr />
 
 <$ $flg = 1; print "# not comment<br />\n"; # 69 $><!--Y-->
-<!=$flg><p>1</p><!=!$flg><p>0</p><!><p>?</p></!>
+<=$flg><p>1</p><!!$flg><p>0</p><!><p>?</p></=>
 
 <hr />
 
@@ -88,9 +88,7 @@ $></p>
 
 <hr />
 
-<p><$ $ep->print('test'); //91 $></p>
-
-<$ $ep->header_out('Content-Create','foo'); /* 93 */ $><!--Y-->
+<$ $ep->header_out('Content-Create','foo'); /* 91 */ $>
 
 <hr />
 

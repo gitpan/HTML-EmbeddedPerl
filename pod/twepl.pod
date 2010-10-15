@@ -4,7 +4,7 @@ twepl - The Perl embeddings for HTML.
 
 =head1 SYNOPSYS
 
-twepl B<-[ceou]+> B<-t:?X> B<files...>
+twepl B<-[ceux]+> B<-t:?X> B<files...>
 
 =head1 DESCRIPTION
 
@@ -20,12 +20,12 @@ inserting first line to
 
 =head1 OPTIONS
 
-B<-[ceou]+>
+B<-[ceux]+>
 
-B<c> = with coloring source.
-B<e> = older version compatible, every tags every execute.
-B<o> = output internal code.
+B<c> = output internal code.
+B<e> = example mode, with coloring source.
 B<u> = use beta features.I<(template mode only now)>
+B<x> = older version compatible, every tags every execute.
 
 B<-t:?X> = set timeout of B<X> seconds.
 
@@ -35,11 +35,11 @@ L<HTML::EmbeddedPerl>
 
 =head1 AUTHOR
 
-Twinkle Computing <twinkle@cpan.org>
+TWINKLE COMPUTING <twinkle@cpan.org>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2010 Twinkle Computing All rights reserved.
+Copyright (c) 2010 TWINKLE COMPUTING All rights reserved.
 
 =head1 LISENCE
 

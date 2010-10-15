@@ -1,48 +1,57 @@
 Revision history for Perl extension HTML::EmbeddedPerl.
 
-0.16  Oct 04 08:50:00 2010
+0.20 Sun Oct 10 14:00:00 2010
+	updates: not forcing $ep->methods in cgi-mode.
+	bug-fix: regular expression.
+	feature: added PHP like methods "echo" and "header" only cgi-mode.
+	feature: change template format and including "unless" boolean expression.
+
+	*IMPORTANT:  twepl option -o to -e, -e to -x.
+	             version 0.50 and after, "-o" to change specifies of output-filename.
+
+0.16 Mon Oct 04 08:50:00 2010
 	bug-fix: "&" -> "%".
 
-0.15  Oct 04 08:00:00 2010
-	updates: flagged beta feature and default to off.
+0.15 Mon Oct 04 08:00:00 2010
+	feature: flagged beta feature and default to off.
 
-0.12  Oct 04 00:00:00 2010
+0.12 Mon Oct 04 00:00:00 2010
 	bug-fix: regular expression.
 
-0.11  Oct 02 22:00:00 2010
+0.11 Sat Oct 02 22:00:00 2010
 	bug-fix: regular expression.
 
-0.10  Sep 30 20:00:00 2010
+0.10 Thu Sep 30 20:00:00 2010
 	updates: changes.many changes. older version compatibility was gone.
 
-0.09  Sep 24 10:20:00 2010
+0.09 Fri Sep 24 10:20:00 2010
 	bug-fix: all. (subroutine, flush)
 
-0.08  Sep 24 10:00:00 2010
+0.08 Fri Sep 24 10:00:00 2010
 	bug-fix: twepl. (mistook replace, header_out was her_out)
 
-0.07  Sep 24 08:20:00 2010
-	updates: pealpv. (MSVC support)
+0.07 Fri Sep 24 08:20:00 2010
+	updates: perlpv. (MSVC support)
 	bug-fix: bin/Makefile.PL. (MinGW support)
 	feature: checking http-header redefine.
 
-0.06  Sep 22 19:20:00 2010
+0.06 Wed Sep 22 19:20:00 2010
 	renewal: perlpv. (optimize,ccopts,ldopts)
 
-0.05  Sep 22 19:00:00 2010
+0.05 Wed Sep 22 19:00:00 2010
 	bug-fix: bin/Makefile.PL. (BSD make $^ issue)
 	updates: perlpv. (looking for $Config{libperl})
 	feature: replace scalar on non-code blocks.
 
-0.04  Sep 20 19:22:00 2010
+0.04 Mon Sep 20 19:22:00 2010
 	bug-fix: perlpv. (forgot escape)
 
-0.03  Sep 18 19:19:00 2010
+0.03 Sat Sep 18 19:19:00 2010
 	bug-fix: perlpv. (forgot malloc)
 
-0.02  Sep 18 19:18:00 2010
+0.02 Sat Sep 18 19:18:00 2010
 	fix twepl. (different: error lines)
 
-0.01  Sep 16 20:20:58 2010
+0.01 Thu Sep 16 20:20:58 2010
 	- original version; created by h2xs 1.23 with options
 		-XA -n HTML::EmbeddedPerl

@@ -134,6 +134,11 @@ before calling sub B<ep()>
   _coloring
   _extract_hash
   _extract_array
+  _extract_bool
+  _extract_bool_unless
+  _extract_tags
+  _get_crlf
+  _ignore_comments
   _init
   _run
 
@@ -157,10 +162,21 @@ flushing HTTP header.
 
   $ep->flush;
 
+=head2 header
+
+PHP like method.
+
+  header("$key: $val");
+
+=head2 echo
+
+PHP like method.
+
+  echo $string;
+
 =head1 COMPATIBLE METHODS
 
 it tiny-tiny solving B<cgi>-B<modperl> compatibility methods.
-use that $ep->B<method> I<*inner code tags only>.
 
 =head2 header_out
 
@@ -173,6 +189,10 @@ use that $ep->B<method> I<*inner code tags only>.
 =head2 print
 
   $ep->print($string);
+
+=head2 printf
+
+  $ep->print($format,$string);
 
 =head1 OTHER METHODS
 
@@ -198,6 +218,8 @@ B<2> = older version compatible, every tags execute.
 B<3> =  I<-- with coloring source>.
 B<4> = output internal code.
 B<5> =  I<-- with coloring source>.
+B<6> = output internal code to multiple-tags.
+B<7> =  I<-- with coloring source>.
 
 =head2 OPTION 2
 
@@ -209,8 +231,6 @@ B<1> = template mode.I<(use beta features)>
 B<#> comments
 B<//> comments
 B</*> comments B<*/>
-
-please do not put comments if possible.
 
 =head1 Extract Vars
 
@@ -241,24 +261,25 @@ and available simple template.
 use this beta features needs set option.
 or insert as first element in non-code blocks it.
 
-B<<!--Y-->> is ON
-B<<!--N-->> is OFF
+B<<!--Y-->>
+B<<!--N-->>
 
 default is B<off>, because it was very slow.
 
 =head2 Extract Array
 
-<@=B<ARRAYNAME>>...</@>, extract value is B<$_>.
-B<ARRAYNAME> can use reference B<{ARRAYNAME}> or B<\ARRAYNAME>.
+<@B<ARRAYNAME>>...</@> or <\@B<ARRAYREFNAME>>...</@>, extract value is B<$_>.
 
-B<$n> = current array name.
-B<$i> = current position.
-B<$c> = equals scalar @array;
+B<X> is nested depth.
+
+B<$nX> = current array name.
+B<$iX> = current position.
+B<$cX> = equals scalar @array;
 
 and B<$XXX> = want vars.
 
   <$ my @array = ('a'..'c'); $>
-  <@=array><p>$i: $_</p>\n</@>
+  <@array><p>$i: $_</p>\n</@>
   ...
   <p>0: a</p>
   <p>1: b</p>
@@ -266,17 +287,18 @@ and B<$XXX> = want vars.
 
 =head2 Extract Hash
 
-<%=B<HASHNAME>>...</%>, extract key is B<$k>, value is B<$v>.
-B<HASHNAME> can use reference B<{HASHNAME}> or B<\HASHNAME>.
+<%B<HASHNAME>>...</%> or <\%B<HASHREFNAME>>...</%>, extract key is B<$kX>, value is B<$vX>.
 
-B<$n> = current hash name.
-B<$c> = equals scalar keys %hash;
+B<X> is nested depth.
+
+B<$nX> = current hash name.
+B<$cX> = equals scalar keys %hash;
 
 and B<$XXX> = want vars.
 
   <$ my %hash = ('a'=>1,'b'=>2,'c'=>3); $>
   <table>
-  <%=hash><tr><th>$k</th><td>$v</td></tr>\n</%>
+  <%hash><tr><th>$k0</th><td>$v0</td></tr>\n</%>
   </table>
   ...
   <table>
@@ -287,23 +309,23 @@ and B<$XXX> = want vars.
 
 =head2 Boolean Expression
 
-<!=B<EXPRESSION>>...</!>
-replace inner B<<!>> to else, <!=B<EXPRESSION>> to elsif.
+<B<EXPRESSION>>...</=> or B<unless> <!B<EXPRESSION>>...</!>
+replace inner B<<!>> to else, <!B<EXPRESSION>> to elsif.
 
   <$ my $flag = 1; my $oops = 'oops!'; $>
-  <!=$flag><p>$flag</p><!><p>$oops</p></!>
+  <=$flag><p>$flag</p><!><p>$oops</p></=>
   ...
   <p>1</p>
 
-B<E<gt>> is same a tag-close, try B<($a E<gt> $b)> in compilation errors.
+B<E<gt>> is same a tag-closer, try B<($a E<gt> $b)> in compilation errors.
 
 =head1 AUTHOR
 
-Twinkle Computing <twinkle@cpan.org>
+TWINKLE COMPUTING <twinkle@cpan.org>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2010 Twinkle Computing All rights reserved.
+Copyright (c) 2010 TWINKLE COMPUTING All rights reserved.
 
 =head1 LISENCE
 

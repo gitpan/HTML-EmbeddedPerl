@@ -11,7 +11,7 @@ MKWRAP = mkw/mkwrap
 all: mkwrap
 
 mkwrap:
-	$Config{perlpath} \$(MKWRAP)
+	$Config{perlpath} \$(MKWRAP) -o wrapper.pl
 test:
 clean:
 	$rmc wrapper.pl

@@ -1,7 +1,7 @@
 package HTML::EmbeddedPerl;
 
-use strict;
-use warnings;
+#use strict;
+#use warnings;
 
 use Exporter;
 
@@ -9,10 +9,18 @@ our @ISA       = qw(Exporter);
 our @EXPORT    = qw(ep);
 our @EXPORT_OK = qw($VERSION $TIMEOUT);
 
-our $VERSION = '0.16';
+our $VERSION = '0.20';
 our $TIMEOUT = 2;
 
+use XSLoader;
+XSLoader::load('HTML::EmbeddedPerl',$VERSION);
+
 my $STDBAK = *STDOUT;
+
+my $PKGNAM = __PACKAGE__;
+
+my $CTTYPE = 'text/html';
+my @HEADER = ();
 
 sub _coloring{
   my($e,$c) = ($_[0],$_[1] ? $_[1] : '090');
@@ -29,57 +37,66 @@ sub _coloring{
   $e =~ s/\$/\\\$/go;
   $e =~ s/\@/\\\@/go;
   $e =~ s/\%/\\\%/go;
-  return qq[\$ep->print("<blockquote style=\\x22color:#$c;\\x22>$e</blockquote>");];
+  return qq[\$ep->print("<blockquote style=\\"color:#$c;\\">$e</blockquote>");];
 }
 sub _extract_hash{
   my($n,$t,$l) = @_;
-  my $r = qq[{ my(\$c,\$n) = (scalar(keys \%].$n.qq[),'$n'); foreach my \$k(keys \%].$n.qq[){ my \$v = \$].$n.qq[{\$k}; \$ep->print("$t"); }};];
+  my $r = qq[{ my(\$c$l,\$n$l) = (scalar(keys \%$n),'$n'); foreach my \$k$l(keys \%$n){ my \$v$l = \$$n\{\$k$l\}; \$ep->print("$t"); }}];
   $r = qq["); $r \$ep->print("] if $l;
   return $r;
 }
 sub _extract_array{
   my($n,$t,$l) = @_;
-  my $r = qq[{ my(\$c,\$n) = (scalar(\@$n),'$n'); for(my \$i=0;\$i<\@$n;\$i++){ \$_ = \$].$n.qq[[\$i]; \$ep->print("$t"); }};];
+  my $r = qq[{ my(\$c$l,\$n$l) = (scalar(\@$n),'$n'); for(my \$i=0;\$i<\@$n;\$i++){ \$_ = \$$n\x5b\$i\x5d; \$ep->print("$t"); }}];
   $r = qq["); $r \$ep->print("] if $l;
   return $r;
 }
 sub _extract_bool{
   my($x,$t,$l) = @_;
-  my $r = qq[{ if($x){ \$ep->print("$t") }};];
-  $r =~ s/\<\!\=([^\>]+)\>/"); } elsif($1) { \$ep->print("/gos;
+  my $r = qq[{ if($x){ \$ep->print("$t"); }}];
+  $r =~ s/\<\!(\([^\)]+?\)|[^\>]+)\>/"); } elsif($1) { \$ep->print("/gos;
+  $r =~ s/\<\!\>/"); } else { \$ep->print("/os;
+  $r = qq["); $r \$ep->print("] if $l;
+  return $r;
+}
+sub _extract_bool_unless{
+  my($x,$t,$l) = @_;
+  my $r = qq[{ unless($x){ \$ep->print("$t"); }}];
+  $r =~ s/\<\!(\([^\)]+?\)|[^\>]+)\>/"); } elsif($1) { \$ep->print("/gos;
   $r =~ s/\<\!\>/"); } else { \$ep->print("/os;
   $r = qq["); $r \$ep->print("] if $l;
   return $r;
 }
 sub _extract_tags{
-  my($i,$f,$l,@o) = (shift,shift,shift);
-  foreach my $t(split(/(\<\%\=(?:\w+|\{\w+\}|\\\w+)\>(?:.*(?:\<\%=(?:\w+|\{\w+\}|\\\w+)\>)?.+?(?:\<\/\%\>)?.*)+\<\/\%\>|\<\@\=(?:\w+|\{\w+\}|\\\w+)\>(?:.*(?:\<\@=(?:\w+|\{\w+\}|\\\w+)\>)?.+?(?:\<\/\@\>)?.*)+\<\/\@\>|\<\!\=[^\>]+\>(?:.*(?:\<\!=[^\>]+\>)?.+?(?:\<\/\!\>)?.*)+\<\/\!\>)/os,$i)){
-    if($t =~ s/\<\/\%\>$// && $t =~ s/^\<\%\=(\w+|\{\w+\}|\\\w+)\>//){
-      my $n = $1;
-      push(@o,_coloring("<\%=$n>$t</\%>",'c0c')) if ! $l && $f % 2;
-      $t = _extract_tags($t,$f,1) if $t =~ /\<([\@\%\!])\=(\([^\)]+\)|[^\>]+)\>.+\<\/\1\>/;
-      $n =~ s/^\{(\w+)\}$/{\$$1}/;
-      $n =~ s/^\\(\w+)$/{\$$1}/;
-      push(@o,_extract_hash($n,$t,$l));
-    } elsif($t =~ s/\<\/\@\>$// && $t =~ s/^\<\@\=(\w+|\{\w+\}|\\\w+)\>//){
-      my $n = $1;
-      push(@o,_coloring("<\@\=$n>$t</\@>",'c00')) if ! $l && $f % 2;
-      $t = _extract_tags($t,$f,1) if $t =~ /\<([\@\%\!])\=(\([^\)]+\)|[^\>]+)\>.+\<\/\1\>/;
-      $n =~ s/^\{(\w+)\}$/{\$$1}/;
-      $n =~ s/^\\(\w+)$/{\$$1}/;
-      push(@o,_extract_array($n,$t,$l));
-    } elsif($t =~ s/\<\/\!\>$// && $t =~ s/^\<\!\=(\([^\)]+\)|[^\>]+)\>//){
+  my($i,$f,$l,$o) = (shift,shift,shift,'');
+  foreach my $t(split(/(\<\\?\%(?:\w+|\{\w+\}|\\\w+)\>(?:.*(?:\<\\?\%(?:\w+|\{\w+\}|\\\w+)\>)?.+?(?:\<\/\%\>)?.*)+\<\/\%\>|\<\\?\@(?:\w+|\{\w+\}|\\\w+)\>(?:.*(?:\<\\?\@(?:\w+|\{\w+\}|\\\w+)\>)?.+?(?:\<\/\@\>)?.*)+\<\/\@\>|\<\=(?:\([^\)]+?\)|[^\>]+)\>(?:.*(?:\<\=(?:\([^\)]+?\)|[^\>]+)\>)?.+?(?:\<\/\=\>)?.*)+\<\/\=\>|\<\!(?:\([^\)]+?\)|[^\>]+)\>(?:.*(?:\<\!(?:\([^\)]+?\)|[^\>]+)>]+\>)?.+?(?:\<\/\!\>)?.*)+\<\/\!\>)/s,${$i})){
+    if($t =~ s/\<\/\%\>$// && $t =~ s/^\<(\\)?\%(\w+)\>//){
+      my $r = $1 ? $1 : ''; my $n = $1 ? "{\$$2}" : $2;
+      $o .= _coloring("<$r\%$2>$t</\%>",'c0c') if ! $l && $f % 2;
+      $t = _extract_tags(\$t,$f,1) if $t =~ /\<\\?[\=\!\@\%]/s;
+      $o .= _extract_hash($n,$t,$l++); $l--;
+    } elsif($t =~ s/\<\/\@\>$// && $t =~ s/^\<(\\)?\@(\w+)\>//){
+      my $r = $1 ? $1 : ''; my $n = $1 ? "{\$$2}" : $2;
+      $o .= _coloring("<$r\@$2>$t</\@>",'c00') if ! $l && $f % 2;
+      $t = _extract_tags(\$t,$f,1) if $t =~ /\<\\?[\=\!\@\%]/s;
+      $o .= _extract_array($n,$t,$l++); $l--;
+    } elsif($t =~ s/\<\/\=\>$// && $t =~ s/^\<\=(\([^\)]+?\)|[^\>]+)\>//){
       my $x = $1;
-      push(@o,_coloring("<\!=$x>$t</\!>",'00c')) if ! $l && $f % 2;
-      $t = _extract_tags($t,$f,1) if $t =~ /\<([\@\%\!])\=(?:\([^\)]+\)|[^\>]+)\>.+\<\/\1\>/;
-      push(@o,_extract_bool($x,$t,$l));
+      $o .= _coloring("<=$x>$t</=>",'00c') if ! $l && $f % 2;
+      $t = _extract_tags(\$t,$f,1) if $t =~ /\<\\?[\=\!\@\%]/s;
+      $o .= _extract_bool($x,$t,$l++); $l--;
+    } elsif($t =~ s/\<\/\!\>$// && $t =~ s/^\<\!(\([^\)]+?\)|[^\>]+)\>//){
+      my $x = $1;
+      $o .= _coloring("<!$x>$t</!>",'09c') if ! $l && $f % 2;
+      $t = _extract_tags(\$t,$f,1) if $t =~ /\<\\?[\=\!\@\%]/s;
+      $o .= _extract_bool_unless($x,$t,$l++); $l--;
     } else{
       # output HTML code in debug
-      #push(@o,_coloring($t,'999')) if ! $l && $f % 2;
-      push(@o,$l ? $t : qq[\$ep->print("$t");]);
+      #$o .= _coloring($t,'999') if ! $l && $f % 2;
+      $o .= $l ? $t : qq[\$ep->print("$t");];
     }
   }
-  return wantarray ? @o : join '',@o;
+  return $o;
 }
 sub _re_print{
   my($r1,$r2,$r3,$r4,$r5,$r6,$r7,$r8,$r9) = @_;
@@ -89,43 +106,29 @@ sub _re_print{
   $ret .= $r3 ? $r7 : "$r7$r8)$r9";
   return $ret;
 }
-sub _get_crlf{
-  my $c = shift;
-  $c =~ s/[^\r\n]//gs;
-  return $c;
-}
-sub _ignore_comments{
-  my($i,@o) = shift;
-  foreach my $t(split(/(\<\<[\"\'\`]?(\w+).+?)\2/s,$i)){
-    # here-document
-    if($t =~ /^\<\<[\"\'\`]?\w+/){
-      push(@o,$t);
-    } else{
-      $t =~ s/\x20*\/\*(.+?)\*\/\x20*/_get_crlf($1)/egos;
-      $t =~ s/(((?:q[qw]?)\(.*\)|(?:q[qw]?)\[.*\]|(?:q[qw]?)\{.*\}|(?:q[qw]?)(.).*\2|([\"\'\`]).*\3)\;)*\x20+?(\x23|\/\/).*/$1/g;
-      push(@o,$t);
-    }
-  }
-  return wantarray ? @o : join '',@o;
-}
 sub _init{
   my($i,$f,$u,@o) = (ref $_[0] ? ${$_[0]} : $_[0],$_[1],$_[2]);
-  my($d);
-  foreach my $t(split(/(\<\$.+?\$\>)/s,$i)){
+  if($i =~ s/^\#\![^\r\n]+([\r\n\s]+)//os){
+    push(@o,$1);
+  }
+  foreach my $t(split(/(\<\$.+?\$\>|\<\:.+?\:\>)/s,$i)){
     if($t =~ s/^\<\$// && $t =~ s/\$\>$//){
       push(@o,_coloring($t)) if $f % 2;
       $t =~ s/(?<!\$ep\-\>)([\s\;])print\s*(?:[\$\*\w]*(?:\(\))?)\s*(q[qw]?|\<\<[\"\'\`]?(\w+))?([\(\[\{]?)(.)(.+?)(\3|\5)([\)\]\}])?(\;?)/_re_print($1,$2,$3,$4,$5,$6,$7,$8,$9)/egs if exists $ENV{MOD_PERL};
       $t = _ignore_comments($t);
       push(@o,$t);
+    } elsif($t =~ s/^\<\:// && $t =~ s/\:\>$//){
+      push(@o,_coloring($t)) if $f % 2;
+      push(@o,$t);
     } else{
-      my $y = $t =~ s/^(\s*)\<\!\-\-\#?y\-\-\>/$1/is;
-      my $n = $t =~ s/^(\s*)\<\!\-\-\#?n\-\-\>/$1/is;
+      my $y = $t =~ s/^(\s*)\<\!\-\-[yY]\-\-\>/$1/s;
+      my $n = $t =~ s/^(\s*)\<\!\-\-[nN]\-\-\>/$1/s;
       $t =~ s/\"/\\\"/go;
-      if($u && ! $n || ! $u && $y){
-        $t = _extract_tags($t,$f,0);
+      if(($u % 2 && ! $n || ! $u % 2 && $y)&&$t=~/\<[\=\!\\\@\%]/){
+        $t = _extract_tags(\$t,$f,0);
         push(@o,$t);
       } else{
-        push(@o,qq[\$ep->print("$t");]);
+        push(@o,qq[print "$t";]);
       }
     }
   }
@@ -133,23 +136,58 @@ sub _init{
 }
 
 sub header_out{
-  my $f = 0; for(my $i=0;$i<@{$_[0]->{head}};$i++){
-    my($k,$v) = split /\: /,@{$_[0]->{head}}[$i],2;
-    if($k eq $_[1]){
-      @{$_[0]->{head}}[$i] = "$k: $_[2]" if($v ne $_[2]);
+  my($ki,$vi) = ref $_[0] eq $PKGNAM ? (1,2) : (0,1);
+  if(exists $ENV{MOD_PERL}){
+    $_[0]->header_out($_[1],$_[2]);
+    return;
+  }
+  return if $_[$ki] =~ /Content\-Type/i;
+  my $f = 0; for(my $i=0;$i<@HEADER;$i++){
+    my($k,$v) = split /\: /,$HEADER[$i],2;
+    if($k eq $_[$ki]){
+      $HEADER[$i] = "$k: $_[$vi]" if($v ne $_[$vi]);
       $f++; last;
     }
   }
-  push(@{$_[0]->{head}},"$_[1]: $_[2]") if(!$f);
+  push(@HEADER,"$_[$ki]: $_[$vi]") if(!$f);
+}
+sub header{
+  my $h = ref $_[0] eq $PKGNAM ? $_[1] : $_[0]; my($k,$v) = split(/\:\s+/,$h,2); header_out($k,$v);
 }
 sub content_type{
-  $_[0]->{type} = $_[1];
+  if(exists $ENV{MOD_PERL}){
+    $_[0]->content_type($_[1]);
+    return;
+  }
+  $CTTYPE = ref($_[0]) eq $PKGNAM ? $_[1] : $_[0];
 }
 sub flush{
-  print $STDBAK (@{$_[0]->{head}} ? join("\r\n",@{$_[0]->{head}})."\r\n":'')."Content-Type: $_[0]->{type}\r\n\r\n";
+  return if(exists $ENV{MOD_PERL});
+  print $STDBAK (@HEADER ? join("\r\n",@HEADER)."\r\n":'')."Content-Type: $CTTYPE\r\n\r\n";
 }
 sub print{
-  shift if ref $_[0] eq __PACKAGE__; CORE::print @_;
+  if(exists $ENV{MOD_PERL}){
+    my $o = shift;
+    $o->print(@_);
+    return;
+  }
+  shift if ref $_[0] eq $PKGNAM; CORE::print @_;
+}
+sub echo{
+  if(exists $ENV{MOD_PERL}){
+    my $o = shift;
+    $o->print(@_);
+    return;
+  }
+  shift if ref $_[0] eq $PKGNAM; CORE::print @_;
+}
+sub printf{
+  if(exists $ENV{MOD_PERL}){
+    my $o = shift;
+    $o->printf(@_);
+    return;
+  }
+  shift if ref $_[0] eq $PKGNAM; CORE::printf @_;
 }
 
 sub _run{
@@ -157,21 +195,26 @@ sub _run{
 }
 
 sub ep{
-  my $pkg = __PACKAGE__;
-  my $ref = (ref $_[0] && ref($_[0]) =~ /^(Apa|$pkg)/i)? shift : $pkg->new();
+  my $ref = (ref $_[0] && ref($_[0]) =~ /^(Apa|$PKGNAM)/i)? shift : $PKGNAM->new();
   my $flg = $_[1] ? $_[1] : 0;
   my $ubf = $_[2] ? $_[2] : 0;
   my @src = _init((ref $_[0] ? ${$_[0]} : $_[0]),$flg,$ubf);
   my $tmp = '';
-  my $var = bless {},$pkg.'::Vars';
+  my $var = bless {},$PKGNAM.'::Vars';
   open TMP,'>>',\$tmp;
   *STDOUT = *TMP;
-  $flg > 3 ? do {
+  local $SIG{ALRM} = sub{ die 'Forced exiting, detected loop'; };
+  alarm $TIMEOUT;
+  if($flg > 3){
     $ref->content_type('text/plain');
-    $tmp .= '<$'.join('',@src)."\$>\n";
-  } : $flg > 1 ? do {
-    local $SIG{ALRM} = sub{ die 'Forced exiting, detected loop'; };
-    alarm $TIMEOUT;
+    if($flg > 5){
+      foreach my $ept(@src){
+        $tmp .= '<:'.$ept.':>';
+      }
+    } else{
+      $tmp .= '<:'.join('',@src).':>';
+    }
+  } elsif($flg > 1){
     my($pos,$now) = (1,0);
     foreach my $epl(@src){
       $now = $pos;
@@ -180,13 +223,12 @@ sub ep{
         $@ =~ s/at\x20\(eval\x20[0-9]+\)\x20line\x20([0-9]+)/'at line '.($now+($1-1))/ego;
         $@ =~ s/\x22/\&quot\;/g; chop $@;
         my $ret = qq[<blockquote style="padding:4px;color:#c00;background-color:#fdd;border:solid 1px #f99;font-size:80%;"><span style="font-weight:bold;">ERROR:</span> $@</blockquote>\n];
-        exists $ENV{MOD_PERL} ? $ref->print($ret) : $tmp .= $ret;
+        if(exists $ENV{MOD_PERL}){ $ref->print($ret); }
+        else{ $tmp .= $ret; }
         last if $@ =~ /^(Force|ModPerl\:\:Util\:\:exit)/;
       }
     }
-  } : do {
-    local $SIG{ALRM} = sub{ die 'Forced exiting, detected loop'; };
-    alarm $TIMEOUT;
+  } else{
     if(!_run($ref,$var,join('',@src)) && $@){
       $@ =~ s/at\x20\(eval\x20[0-9]+\)\x20line\x20([0-9]+)/at line $1/go;
       $@ =~ s/\x22/\&quot\;/g; chop $@;
@@ -195,13 +237,14 @@ sub ep{
       $ret .= qq[<hr style="border-style:solid;border-width:1px 0px 0px 0px;border-color:#900;" />\n];
       $ret .= qq[<div style="color:#600;text-align:right;">$ENV{SERVER_SIGNATURE}</div>\n];
       $ref->header_out('Status','500 Internal Server Error');
-      exists $ENV{MOD_PERL} ? $ref->print($ret) : $tmp .= $ret;
+      if(exists $ENV{MOD_PERL}){ $ref->print($ret); }
+      else{ $tmp .= $ret; }
     }
-  };
+  }
   close TMP;
   *STDOUT = $STDBAK;
   return $tmp if defined wantarray;
-  flush $ref if ref $ref eq $pkg;
+  &flush if ref $ref eq $PKGNAM;
   $ref->print($tmp);
 }
 
@@ -210,7 +253,7 @@ sub handler{
   my $f = exists $ENV{OUTMODE} ? $ENV{OUTMODE} : 0;
   my $u = exists $ENV{USEFEAT} ? $ENV{USEFEAT} : 0;
   $r->content_type('text/html');
-  return 1 unless open HTM, $r->filename;
+  return 404 unless open HTM, $r->filename;
   sysread HTM,$c,(-s HTM);
   close HTM;
   ep $r,\$c,$f,$u;
@@ -219,9 +262,7 @@ sub handler{
 
 sub new{
   my $s = bless {},shift;
-  $s->{type} = 'text/html';
-  $s->{head} = [];
-  $s;
+  return $s;
 }
 
 1;
@@ -364,6 +405,11 @@ before calling sub B<ep()>
   _coloring
   _extract_hash
   _extract_array
+  _extract_bool
+  _extract_bool_unless
+  _extract_tags
+  _get_crlf
+  _ignore_comments
   _init
   _run
 
@@ -387,10 +433,21 @@ flushing HTTP header.
 
   $ep->flush;
 
+=head2 header
+
+PHP like method.
+
+  header("$key: $val");
+
+=head2 echo
+
+PHP like method.
+
+  echo $string;
+
 =head1 COMPATIBLE METHODS
 
 it tiny-tiny solving B<cgi>-B<modperl> compatibility methods.
-use that $ep->B<method> I<*inner code tags only>.
 
 =head2 header_out
 
@@ -403,6 +460,10 @@ use that $ep->B<method> I<*inner code tags only>.
 =head2 print
 
   $ep->print($string);
+
+=head2 printf
+
+  $ep->print($format,$string);
 
 =head1 OTHER METHODS
 
@@ -428,6 +489,8 @@ B<2> = older version compatible, every tags execute.
 B<3> =  I<-- with coloring source>.
 B<4> = output internal code.
 B<5> =  I<-- with coloring source>.
+B<6> = output internal code to multiple-tags.
+B<7> =  I<-- with coloring source>.
 
 =head2 OPTION 2
 
@@ -439,8 +502,6 @@ B<1> = template mode.I<(use beta features)>
 B<#> comments
 B<//> comments
 B</*> comments B<*/>
-
-please do not put comments if possible.
 
 =head1 Extract Vars
 
@@ -478,17 +539,18 @@ default is B<off>, because it was very slow.
 
 =head2 Extract Array
 
-<@=B<ARRAYNAME>>...</@>, extract value is B<$_>.
-B<ARRAYNAME> can use reference B<{ARRAYNAME}> or B<\ARRAYNAME>.
+<@B<ARRAYNAME>>...</@> or <\@B<ARRAYREFNAME>>...</@>, extract value is B<$_>.
 
-B<$n> = current array name.
-B<$i> = current position.
-B<$c> = equals scalar @array;
+B<X> is nested depth.
+
+B<$nX> = current array name.
+B<$iX> = current position.
+B<$cX> = equals scalar @array;
 
 and B<$XXX> = want vars.
 
   <$ my @array = ('a'..'c'); $>
-  <@=array><p>$i: $_</p>\n</@>
+  <@array><p>$i: $_</p>\n</@>
   ...
   <p>0: a</p>
   <p>1: b</p>
@@ -496,17 +558,18 @@ and B<$XXX> = want vars.
 
 =head2 Extract Hash
 
-<%=B<HASHNAME>>...</%>, extract key is B<$k>, value is B<$v>.
-B<HASHNAME> can use reference B<{HASHNAME}> or B<\HASHNAME>.
+<%B<HASHNAME>>...</%> or <\%B<HASHREFNAME>>...</%>, extract key is B<$kX>, value is B<$vX>.
 
-B<$n> = current hash name.
-B<$c> = equals scalar keys %hash;
+B<X> is nested depth.
+
+B<$nX> = current hash name.
+B<$cX> = equals scalar keys %hash;
 
 and B<$XXX> = want vars.
 
   <$ my %hash = ('a'=>1,'b'=>2,'c'=>3); $>
   <table>
-  <%=hash><tr><th>$k</th><td>$v</td></tr>\n</%>
+  <%hash><tr><th>$k0</th><td>$v0</td></tr>\n</%>
   </table>
   ...
   <table>
@@ -517,23 +580,23 @@ and B<$XXX> = want vars.
 
 =head2 Boolean Expression
 
-<!=B<EXPRESSION>>...</!>
-replace inner B<<!>> to else, <!=B<EXPRESSION>> to elsif.
+<B<EXPRESSION>>...</=> or B<unless> <!B<EXPRESSION>>...</!>
+replace inner B<<!>> to else, <!B<EXPRESSION>> to elsif.
 
   <$ my $flag = 1; my $oops = 'oops!'; $>
-  <!=$flag><p>$flag</p><!><p>$oops</p></!>
+  <=$flag><p>$flag</p><!><p>$oops</p></=>
   ...
   <p>1</p>
 
-B<E<gt>> is same a tag-close, try B<($a E<gt> $b)> in compilation errors.
+B<E<gt>> is same a tag-closer, try B<($a E<gt> $b)> in compilation errors.
 
 =head1 AUTHOR
 
-Twinkle Computing <twinkle@cpan.org>
+TWINKLE COMPUTING <twinkle@cpan.org>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2010 Twinkle Computing All rights reserved.
+Copyright (c) 2010 TWINKLE COMPUTING All rights reserved.
 
 =head1 LISENCE
 

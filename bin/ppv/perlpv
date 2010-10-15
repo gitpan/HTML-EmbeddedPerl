@@ -36,7 +36,7 @@ exit unless open SRC,$target;
 sysread SRC,$source,(-s SRC);
 close SRC;
 
-if(! eval{$target} && $@){
+if(! eval $source && $@){
   print STDERR $@; exit;
 } else{
   print STDOUT "perlpv-lint: passed $target\n";
@@ -53,19 +53,25 @@ my $outobj = $opt{out} ? $opt{out}.($opt{out} =~ /$Config{_o}$/ ? '' : $Config{_
 my $output = $opt{out} ? $opt{out}.($opt{out} =~ /$Config{_exe}$/ ? '' : $Config{_exe}) : $tmpsrc.$Config{_exe};
 $tmpsrc .= '.c';
 
+exit unless open EXT,"ppv/extsub";
+my $ext = join '',<EXT>;
+close EXT;
 exit unless open TMP,">$tmpsrc";
 flock(TMP,2);
+print TMP "\x23include <stdio.h>\n\x23include <stdlib.h>\n\x23include <string.h>\n\n";
 {
   my(@mods,%seen);
   my $xsinit_proto = "pTHX";
   my $std = 1 unless scalar @mods;
   push(@mods, ExtUtils::Embed::static_ext()) if defined $std;
   @mods = grep(!$seen{$_}++, @mods);
-  print TMP ExtUtils::Embed::xsi_header();
+  #print TMP ExtUtils::Embed::xsi_header();
+  print TMP qq[\x23include "EXTERN.h"\n\x23include "perl.h"\n\x23include "XSUB.h"\n\n$ext\n];
   print TMP "EXTERN_C void xs_init ($xsinit_proto);\n\n";
   print TMP ExtUtils::Embed::xsi_protos(@mods);
   print TMP "\nEXTERN_C void\nxs_init($xsinit_proto)\n{\n";
   print TMP ExtUtils::Embed::xsi_body(@mods);
+  print TMP qq[\n\tnewXS("twepl::_ignore_comments",XS_twepl__ignore_comments,file);\n\n];
   print TMP "}\n\n";
 }
 print TMP "static char SOURCE[] = {\n  ";
@@ -93,7 +99,7 @@ int main(int argc,char **argv,char **envp){
   exitstatus = perl_parse(my_perl,xs_init,3,embedding,(char**)NULL);
   exitstatus = perl_run(my_perl);
   eval_pv(SOURCE,TRUE);
-  call_argv("$pkgnam\:\:main",G_DISCARD|G_EVAL,++argv);
+  call_argv("$pkgnam\:\:main",G_DISCARD|G_EVAL,argv);
   if(SvTRUE(ERRSV)){
     fprintf(stderr,"%s\\n",SvPV(ERRSV,n_a));
   }

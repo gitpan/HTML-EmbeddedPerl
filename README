@@ -1,4 +1,4 @@
-HTML-EmbeddedPerl version 0.15
+HTML-EmbeddedPerl version 0.20
 ==============================
 
 OVERVIEW
@@ -28,12 +28,12 @@ To install this module type the following:
 NOTICE
 
 HTML::EmbeddedPerl::Test was deleted, that state is forever.
-this package is including HTML::EmbeddedPerl::Test from this version.
+this package is including HTML::EmbeddedPerl::Test from version 0.10.
 our wishing HTML::EmbeddedPerl::Test uninstalled too.
 
 COPYRIGHT
 
-  (C) 2010 Twinkle Computing All rights reserved.
+  (C) 2010 TWINKLE COMPUTING All rights reserved.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

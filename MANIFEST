@@ -1,4 +1,5 @@
 bin/Makefile.PL
+bin/ppv/extsub
 bin/ppv/perlpv
 bin/t/EmbeddedPerl.t
 bin/TESTS
@@ -8,14 +9,16 @@ bin/twres.rc
 Changes
 doc/HTML/EmbeddedPerl.html
 doc/twepl.html
-eg/eg.html
-eg/internal.twepl
+eg/eg.twepl
+eg/internalcode
 eg/ret.html
+EmbeddedPerl.xs
 lib/HTML/EmbeddedPerl.pm
 Makefile.PL
 MANIFEST
 pod/HTML/EmbeddedPerl.pod
 pod/twepl.pod
+ppport.h
 README
 t/HTML-EmbeddedPerl.t
 wrapper/Makefile.PL
