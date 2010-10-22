@@ -64,7 +64,7 @@ int sc(char *c,int p)
   }
   return i;
 }
-char *cc(pTHX,char *c,int l)
+char *cc(pTHX_ char *c,int l)
 {
 
   char *x;
@@ -189,7 +189,7 @@ char *cc(pTHX,char *c,int l)
         Perl_croak(aTHX_ "could not find end of quote in functioncc(%c)",z);
         return NULL;
       }
-    } else if(c[i] == 'q' && (c[(i+1)] == 'q' || c[(i+1)] == 'w' || c[(i+1)] == 'x')){
+    } else if(c[i] == 'q' && (c[(i+1)] == 'q' || c[(i+1)] == 'r' || c[(i+1)] == 'w' || c[(i+1)] == 'x')){
       x[j++] = c[i];
       x[j++] = c[(i+1)];
       t = c[(i+1)];
