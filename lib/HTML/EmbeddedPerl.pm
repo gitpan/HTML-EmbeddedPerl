@@ -9,7 +9,7 @@ our @ISA       = qw(Exporter);
 our @EXPORT    = qw(ep);
 our @EXPORT_OK = qw($VERSION $TIMEOUT);
 
-our $VERSION = '0.21';
+our $VERSION = '0.22';
 our $TIMEOUT = 2;
 
 use XSLoader;

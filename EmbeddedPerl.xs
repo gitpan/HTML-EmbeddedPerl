@@ -139,18 +139,6 @@ char *cc(pTHX_ char *c,int l)
         Perl_croak(aTHX_ "could not find end of regexp in function cc(//)");
         return NULL;
       }
-    } else if(c[i] == '<' && c[(i+1)] != '<'){
-      x[j++] = c[i];
-      for(i+=1;i<l;i++){
-        x[j++] = c[i];
-        if(c[(i-1)] != '\\' && c[i] == '>'){
-            f++; break;
-        }
-      }
-      if(!f){
-        Perl_croak(aTHX_ "could not find end of regexp in function cc(&lt;&gt;)");
-        return NULL;
-      }
     } else if(c[i] == '<' && c[(i+1)] == '<'){
       x[j++] = c[i];
       x[j++] = c[(i+1)];
@@ -176,6 +164,27 @@ char *cc(pTHX_ char *c,int l)
         Perl_croak(aTHX_ "could not find end of here-document in function cc(&gt;&gt;)");
         return NULL;
       }
+    } else if(c[i] == '<'){
+      x[j++] = c[i];
+      for(r=i-1;r>0;r--){
+        if(c[r] == 0x09 || c[r] == 0x20){ continue; }
+        if(c[r] == '~'){ f++; }
+        break;
+      }
+      if(!f){
+        continue;
+      } else{
+        for(i+=1,f=0;i<l;i++){
+          x[j++] = c[i];
+          if(c[(i-1)] != '\\' && c[i] == '>'){
+            f++; break;
+          }
+        }
+        if(!f){
+          Perl_croak(aTHX_ "could not find end of regexp in function cc(&lt;&gt;)");
+          return NULL;
+        }
+      }
     } else if(c[i] == 0x22 || c[i] == 0x27 || c[i] == '`'){
       x[j++] = c[i];
       z = c[i];
@@ -186,7 +195,7 @@ char *cc(pTHX_ char *c,int l)
         }
       }
       if(!f){
-        Perl_croak(aTHX_ "could not find end of quote in functioncc(%c)",z);
+        Perl_croak(aTHX_ "could not find end of quote in function cc(%c)",z);
         return NULL;
       }
     } else if(c[i] == 'q' && (c[(i+1)] == 'q' || c[(i+1)] == 'r' || c[(i+1)] == 'w' || c[(i+1)] == 'x')){

@@ -1,5 +1,8 @@
 Revision history for Perl extension HTML::EmbeddedPerl.
 
+0.22 Mon Oct 25 22:00:00 2010
+	bug-fix: method _ignore_comments.
+
 0.21 Fri Oct 22 22:00:00 2010
 	bug-fix: pTHX, to pTHX_
 
