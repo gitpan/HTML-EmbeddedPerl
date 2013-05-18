@@ -1,3 +1,6 @@
+#ifndef __TWEPL_ICOMM_C__
+#define __TWEPL_ICOMM_C__
+
 int nw(char c)
 {
   if(c < 0x30||(c > 0x39 && c < 0x41)||(c > 0x5a && c < 0x5f)||c == 0x60||c > 0x7a){
@@ -185,7 +188,7 @@ char *cc(pTHX_ char *c,int l)
         }
       }
       if(!f){
-        Perl_croak(aTHX_ "could not find end of quote in functioncc(%c)",z);
+        Perl_croak(aTHX_ "could not find end of quote in function cc(%c)",z);
         return NULL;
       }
     } else if(c[i] == 'q' && (c[(i+1)] == 'q' || c[(i+1)] == 'r' || c[(i+1)] == 'w' || c[(i+1)] == 'x')){
@@ -350,25 +353,4 @@ char *cc(pTHX_ char *c,int l)
 
 }
 
-XS(XS_twepl__ignore_comments);
-XS(XS_twepl__ignore_comments)
-{
-#ifdef dVAR
-  dVAR; dXSARGS;
-#else
-  dXSARGS;
 #endif
-  if (items != 1)
-    Perl_croak(aTHX_ "Usage: %s(%s)", "twepl::_ignore_comments", "code");
-  PERL_UNUSED_VAR(cv);
-  {
-    char *code = (char *)SvPV_nolen(ST(0));
-    char *RETVAL;
-    dXSTARG;
-    if((RETVAL = cc(aTHX_ code,strlen(code))) == NULL){
-      Perl_croak(aTHX_ "comment sintax error");
-    }
-    sv_setpv(TARG,RETVAL); XSprePUSH; PUSHTARG;
-  }
-  XSRETURN(1);
-}

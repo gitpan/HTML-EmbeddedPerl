@@ -1,26 +1,35 @@
 bin/Makefile.PL
-bin/ppv/extsub
 bin/ppv/perlpv
-bin/t/EmbeddedPerl.t
-bin/TESTS
+bin/t/twepx.t
+bin/twepc.c
+bin/twepl.c
 bin/twepl.ico
-bin/twepl.pl
 bin/twres.rc
 Changes
-doc/HTML/EmbeddedPerl.html
-doc/twepl.html
-eg/eg.twepl
-eg/internalcode
-eg/ret.html
 EmbeddedPerl.xs
 lib/HTML/EmbeddedPerl.pm
+LICENSE
+LICENSE.v3
 Makefile.PL
-MANIFEST
-pod/HTML/EmbeddedPerl.pod
-pod/twepl.pod
+MANIFEST			This list of files
 ppport.h
 README
+mod_twepl/build
+mod_twepl/COPYING
+mod_twepl/LICENSE
+mod_twepl/Makefile.PL.OFF
+mod_twepl/mod_twepl.c
+mod_twepl/mod_twepl.conf
+mod_twepl/mod_twepl.h
+mod_twepl/mod_twepl.spec
+mod_twepl/modules.mk
+mod_twepl/README
+mod_twepl/twepl_icomm.c
+mod_twepl/twepl_parse.c
+mod_twepl/twepl_parse.h
+mod_twepl/twepl_xcore.c
+mod_twepl/twepl_xsubs.xs
+mod_twepl/XSUBTRIM.PL
 t/HTML-EmbeddedPerl.t
-wrapper/Makefile.PL
-wrapper/mkw/mkwrap
-META.yml                                 Module meta-data (added by MakeMaker)
+META.yml                                 Module YAML meta-data (added by MakeMaker)
+META.json                                Module JSON meta-data (added by MakeMaker)

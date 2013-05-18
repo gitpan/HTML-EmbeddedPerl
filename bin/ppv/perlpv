@@ -85,28 +85,26 @@ print TMP <<__END_OF_FUNCTION__;
 int main(int argc,char **argv,char **envp){
 
   PerlInterpreter *my_perl;
-  STRLEN n_a;
-  char *embedding[] = {argv[0],"-e\\0","0\\0"};
-  int exitstatus = 0;
+  char *embedding[] = {argv[0], "-e\\0", "0\\0", NULL};
 
-  PERL_SYS_INIT3(&argc,&argv,&envp);
+  PERL_SYS_INIT3(&argc, &argv, &envp);
   if((my_perl = perl_alloc()) == NULL){
-    fprintf(stderr,"no memory!");
+    fprintf(stderr, "no memory!");
     exit(1);
   }
   perl_construct(my_perl);
   PL_origalen = 1;
-  exitstatus = perl_parse(my_perl,xs_init,3,embedding,(char**)NULL);
-  exitstatus = perl_run(my_perl);
-  eval_pv(SOURCE,TRUE);
-  call_argv("$pkgnam\:\:main",G_DISCARD|G_EVAL,argv);
+  perl_parse(my_perl,xs_init,3,embedding,(char**)NULL);
+  perl_run(my_perl);
+  eval_pv(SOURCE, TRUE);
+  call_argv("$pkgnam\:\:main", G_DISCARD|G_EVAL, argv);
   if(SvTRUE(ERRSV)){
-    fprintf(stderr,"%s\\n",SvPV(ERRSV,n_a));
+    Perl_croak("%s\\n", SvPV_nolen(ERRSV));
   }
   perl_destruct(my_perl);
   perl_free(my_perl);
   PERL_SYS_TERM();
-  exit(exitstatus);
+  exit(0);
 
 }
 __END_OF_FUNCTION__

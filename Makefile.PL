@@ -7,6 +7,11 @@ WriteMakefile(
   LICENSE       => 'perl',
   VERSION_FROM  => 'lib/HTML/EmbeddedPerl.pm',
   INST_SCRIPT   => 'blib/bin',
+  INC           => '-I . -I mod_twepl',
   EXE_FILES     => ["bin/twepl$Config{_exe}"],
-  MAN1PODS      => {'pod/twepl.pod'=>'blib/man1/twepl.1'},
 );
+
+# xsubpp
+print "ParseXS: processing to twepl_xsubs.\n";
+chdir 'mod_twepl';
+require 'XSUBTRIM.PL';

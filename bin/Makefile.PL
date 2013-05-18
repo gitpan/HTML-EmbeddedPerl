@@ -1,12 +1,19 @@
 use Config;
 use ExtUtils::Embed;
 
-our $suf = $Config{_exe};
+my $optsf = $Config{_exe};
+my $optop = $Config{optimize};
+my $optcc = ExtUtils::Embed::ccopts;
+my $optld = ExtUtils::Embed::ldopts;
+my $optip = '-I .. -I ../mod_twepl';
 
-  open MKF,'>Makefile';
-  flock MKF,2;
+if($^O =~ /cygwin/i){
+  $optcc =~ s/\-fstack\-protector//g;
+  $optld =~ s/\-fstack\-protector//g;
+}
 
-  print MKF "PERLPV = ppv/perlpv\n\n";
+  open MKF, '>Makefile';
+  flock MKF, 2;
 
 if($suf){
   my $rcc = $Config{cc} eq 'cl' ? 'rc /Fo' : 'windres -o';
@@ -15,19 +22,16 @@ if($suf){
   my $cpo = $Config{cc} eq 'cl' ? ' /B /Y' : '';
   my $rmc = $Config{cc} eq 'cl' ? 'del' : 'rm -f';
   my $rmo = $Config{cc} eq 'cl' ? ' /Q' : '';
-  my $ldo = ExtUtils::Embed::ldopts;
 
 print MKF <<_EOM_;
-all: twepl$Config{_o} twres$Config{_o} twepl$suf
+all: twres$Config{_o} twepl$suf
 
 twres$Config{_o}: twres.rc
 	$rcc twres$Config{_o} twres.rc
-twepl$Config{_o}: twepl.pl
-	$Config{perlpath} \$(PERLPV) -o twepl$Config{_o} twepl.pl
 twepl$suf: twepl$Config{_o}
-	$Config{ld} $Config{optimize}$ldc twepl$Config{_o} twres$Config{_o} $ldo
+	$Config{ld} $Config{optimize}$ldc twepl.c twres$Config{_o} $optip $optld
 test:
-	$Config{perlpath} t/EmbeddedPerl.t
+	./twepl$suf t/twepx.t
 install: all
 	$cpc$cpo twepl$suf $Config{installbin}\\twepl$suf
 uninstall:
@@ -45,10 +49,10 @@ _EOM_
 print MKF <<_EOM_;
 all: twepl
 
-twepl: twepl.pl
-	$Config{perlpath} \$(PERLPV) -o twepl twepl.pl
+twepl:
+	$Config{cc} $optop -o twepl twepl.c $optcc $optip $optld
 test:
-	$Config{perlpath} t/EmbeddedPerl.t
+	./twepl t/twepx.t
 install: all
 	cp -f twepl $Config{installbin}/twepl
 uninstall:
@@ -63,4 +67,4 @@ _EOM_
 
   close MKF;
 
-print "Writing Makefile for EmbeddedPerl BETA.\n";
+print "Writing Makefile for twepl.\n";
