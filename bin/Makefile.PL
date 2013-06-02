@@ -1,11 +1,14 @@
 use Config;
 use ExtUtils::Embed;
 
+my @mkbin = ('twepl', 'twepc');
+my @mksrc = ('twepl_parse', 'twepl_xsubs', 'twepl_xcore');
+my $mkinc = '../mod_twepl';
+
 my $optsf = $Config{_exe};
 my $optop = $Config{optimize};
 my $optcc = ExtUtils::Embed::ccopts;
 my $optld = ExtUtils::Embed::ldopts;
-my $optip = '-I .. -I ../mod_twepl';
 
 if($^O =~ /cygwin/i){
   $optcc =~ s/\-fstack\-protector//g;
@@ -15,52 +18,75 @@ if($^O =~ /cygwin/i){
   open MKF, '>Makefile';
   flock MKF, 2;
 
-if($suf){
+if($optsf){
+
   my $rcc = $Config{cc} eq 'cl' ? 'rc /Fo' : 'windres -o';
-  my $ldc = $Config{cc} eq 'cl' ? '' : " -o twepl$suf";
   my $cpc = $Config{cc} eq 'cl' ? 'copy' : 'cp -f';
   my $cpo = $Config{cc} eq 'cl' ? ' /B /Y' : '';
   my $rmc = $Config{cc} eq 'cl' ? 'del' : 'rm -f';
   my $rmo = $Config{cc} eq 'cl' ? ' /Q' : '';
 
-print MKF <<_EOM_;
-all: twres$Config{_o} twepl$suf
+  print MKF "all: ";
 
-twres$Config{_o}: twres.rc
-	$rcc twres$Config{_o} twres.rc
-twepl$suf: twepl$Config{_o}
-	$Config{ld} $Config{optimize}$ldc twepl.c twres$Config{_o} $optip $optld
-test:
-	./twepl$suf t/twepx.t
+  foreach my $e(@mkbin){
+    print MKF " $e\.res $e$Config{_o} $e$optsf";
+  }; print MKF "\n\n";
+
+  my($mft, $mfi, $mfu, $mfc);
+
+  foreach my $e(@mkbin){
+    print MKF "$e\.res:\n\t$rcc $e\.res $e\.rc\n$e$Config{_o}:\n\t$Config{cc} -c $optop $e\.c -I\x22$mkinc\x22 $optcc\n";
+  }; print MKF "\n";
+
+  foreach my $e(@mkbin){
+    print MKF "$e$optsf: $e\.res $e$Config{_o}\n\t$Config{ld} $e\.res $e$Config{_o} $optld";
+    $mft .= "\t$e$optsf t/twepx.t\n";
+    $mfi .= "\t$cpc$cpo $e$optsf $Config{installbin}\\$e$optsf\n";
+    $mfu .= "\t$rmc $Config{installbin}\\$e$optsf\n";
+    $mfc .= "\t$rmc$rmo $e$optsf\n";
+  }; print MKF "\n";
+
+print MKF <<_EOM_;
+test: all
+$mft
 install: all
-	$cpc$cpo twepl$suf $Config{installbin}\\twepl$suf
+$mfi
 uninstall:
-	$rmc $Config{installbin}\\twepl$suf
+$mfu
 clean:
-	$rmc twepl$suf
-	$rmc$rmo *$Config{_o}
-	$rmc$rmo *.pdb
+$mfc
+\t$rmc$rmo *$Config{_o}
+\t$rmc$rmo *.res
+\t$rmc$rmo *.pdb
 realclean: clean
-	$rmc Makefile
+\t$rmc Makefile
 _EOM_
 
 } else{
 
-print MKF <<_EOM_;
-all: twepl
+  print MKF 'all: '.join(' ', @mkbin)."\n\n";
 
-twepl:
-	$Config{cc} $optop -o twepl twepl.c $optcc $optip $optld
-test:
-	./twepl t/twepx.t
+  my($mft, $mfi, $mfu, $mfc);
+
+  foreach my $e(@mkbin){
+    print MKF "$e:\n\t$Config{cc} $optop -o $e $e\.c -I$mkinc $optcc $optld\n";
+    $mft .= "\t./$e t/twepx.t\n";
+    $mfi .= "\tcp -f twepl $Config{installbin}/$e\n";
+    $mfu .= "\trm -f $Config{installbin}/$e\n";
+    $mfc .= "\trm -f $e\n";
+  }
+
+print MKF <<_EOM_;
+test: all
+$mft
 install: all
-	cp -f twepl $Config{installbin}/twepl
+$mfi
 uninstall:
-	rm -f $Config{installbin}/twepl
+$mfu
 clean:
-	rm -f twepl
+$mfc
 realclean: clean
-	rm -f Makefile
+\trm -f Makefile
 _EOM_
 
 }

@@ -1,13 +1,15 @@
+#define __TWEPC_APP_C__
 #include "twepl_parse.c"
 
 int main(int argc, char **argv, char **envp){
 
-         FILE  *fo;
-         char  *ec;
-         char  *in;
-         char  *on;
-  struct stat   fs;
-          int   rv, i;
+      TWEPL_CONFIG  cfg;
+  enum TWEPL_STATE  ret;
+              FILE *fo;
+              char *ec = NULL;
+              char *in = NULL;
+              char *on = NULL;
+               int  i;
 
   if(argc < 1){
     fprintf(stderr, EPC_APPNAME ": invalid arguments..\n");
@@ -24,7 +26,7 @@ int main(int argc, char **argv, char **envp){
       return 0;
     } else if(strcmp(argv[i], "-o") == 0 && i != argc){
       on = argv[++i];
-    } else if(stat(argv[i],&fs) != -1){
+    } else if(access(argv[i], F_OK) != -1){
       in = argv[i];
     }
   }
@@ -34,9 +36,13 @@ int main(int argc, char **argv, char **envp){
     return 1;
   }
 
-  ec = twepl_file(in , ec, &rv);
+  cfg.ParserFlag = OPT_TAG_ALL;
+  cfg.SendLength = 0;
+  cfg.MyApplePie = 0;
 
-  if(rv != TWEPL_OKEY_NOERR){
+  ret = twepl_file(in , &ec, cfg.ParserFlag);
+
+  if(ret != TWEPL_OKEY_NOERR){
       fprintf(stderr, EPC_APPNAME ": parse error.\n");
       return 1;
   }

@@ -6,12 +6,12 @@
 
 Summary:	Add custom header and/or footers for apache
 Name:		apache-%{mod_name}
-Version:	0.90
+Version:	0.91
 Release:	%mkrel 1
 Group:		System/Servers
 License:	TWINKLE
 URL:		http://www.twinkle.tk/
-Source:		http://www.twinkle.tk/pub/packages/apache2/%mod_name/%mod_name.tar.gz
+Source:		http://www.twinkle.tk/pub/release/%{mod_name}/%{mod_name}-%{version}.tar.gz
 Requires(pre): rpm-helper
 Requires(postun): rpm-helper
 Requires(pre): apache >= %{apache_version}
@@ -25,7 +25,7 @@ BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 %prep
 
-%setup -q -n %{mod_name}-%{version}
+%setup -q -n %{mod_name}
 
 %build
 
@@ -64,5 +64,5 @@ fi
 
 
 %changelog
-* Mon Mar 15 2013 Twinkle Computing <apache at twinkle.tk> 0.90
+* Fri May 24 2013 Twinkle Computing <apache at twinkle.tk> 0.91
 - Beta build

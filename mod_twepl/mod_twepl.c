@@ -42,42 +42,98 @@
 /* Another Sources */
 #include "twepl_xcore.c"
 
-static const char *twepl_set_option(cmd_parms *cmd, void *_conf, const char *value){
-  TWEPL_CONFIG *conf;
-  conf = (TWEPL_CONFIG *)_conf;
-  conf->TWEPL_OPTIONS = (unsigned char *)apr_pstrdup(cmd->pool,value);
-  NULL;
+static const char *twepl_set_option_epl(cmd_parms *cmd, void *_conf, int flag){
+  TWEPL_CONFIG *conf = (TWEPL_CONFIG *)ap_get_module_config(cmd->server->module_config, &twepl_module);
+  if(flag != 0){ conf->ParserFlag |= OPT_TAG_EPL; }
+  else{ conf->ParserFlag = conf->ParserFlag & ~OPT_TAG_EPL; }
+  return NULL;
+}
+
+static const char *twepl_set_option_dol(cmd_parms *cmd, void *_conf, int flag){
+  TWEPL_CONFIG *conf = (TWEPL_CONFIG *)ap_get_module_config(cmd->server->module_config, &twepl_module);
+  if(flag != 0){ conf->ParserFlag |= OPT_TAG_DOL; }
+  else{ conf->ParserFlag = conf->ParserFlag & ~OPT_TAG_DOL; }
+  return NULL;
+}
+
+static const char *twepl_set_option_php(cmd_parms *cmd, void *_conf, int flag){
+  TWEPL_CONFIG *conf = (TWEPL_CONFIG *)ap_get_module_config(cmd->server->module_config, &twepl_module);
+  if(flag != 0){ conf->ParserFlag |= OPT_TAG_PHP; }
+  else{ conf->ParserFlag = conf->ParserFlag & ~OPT_TAG_PHP; }
+  return NULL;
+}
+
+static const char *twepl_set_option_asp(cmd_parms *cmd, void *_conf, int flag){
+  TWEPL_CONFIG *conf = (TWEPL_CONFIG *)ap_get_module_config(cmd->server->module_config, &twepl_module);
+  if(flag != 0){ conf->ParserFlag |= OPT_TAG_ASP; }
+  else{ conf->ParserFlag = conf->ParserFlag & ~OPT_TAG_ASP; }
+  return NULL;
+}
+
+static const char *twepl_set_option_send_length(cmd_parms *cmd, void *_conf, int flag){
+  TWEPL_CONFIG *conf = (TWEPL_CONFIG *)ap_get_module_config(cmd->server->module_config, &twepl_module);
+  conf->SendLength = (flag)? 1: 0;
+  return NULL;
+}
+
+static const char *twepl_set_option_applepie(cmd_parms *cmd, void *_conf, int flag){
+  TWEPL_CONFIG *conf = (TWEPL_CONFIG *)ap_get_module_config(cmd->server->module_config, &twepl_module);
+  conf->MyApplePie = (flag)? 1: 0;
+  return NULL;
 }
 
 static const command_rec twepl_config_options[] ={
-  AP_INIT_TAKE1("TWEPL_OPTIONS",
-               twepl_set_option,
+  AP_INIT_FLAG("TweplTagsEPL",
+               twepl_set_option_epl,
                NULL,
-               (EXEC_ON_READ | RSRC_CONF | ACCESS_CONF | OR_OPTIONS),
-               "module options(see &quot;man 1 twepl&quot): [ccdDsSxX]{1,4}"
+               (EXEC_ON_READ | RSRC_CONF | ACCESS_CONF | OR_OPTIONS | OR_ALL),
+               "Allow ePerl <: code :> Tags."
+               ),
+  AP_INIT_FLAG("TweplTagsDOL",
+               twepl_set_option_dol,
+               NULL,
+               (EXEC_ON_READ | RSRC_CONF | ACCESS_CONF | OR_OPTIONS | OR_ALL),
+               "Allow old <$ code $> Tags."
+               ),
+  AP_INIT_FLAG("TweplTagsPHP",
+               twepl_set_option_php,
+               NULL,
+               (EXEC_ON_READ | RSRC_CONF | ACCESS_CONF | OR_OPTIONS | OR_ALL),
+               "Allow PHP <? code ?> Tags."
+               ),
+  AP_INIT_FLAG("TweplTagsASP",
+               twepl_set_option_asp,
+               NULL,
+               (EXEC_ON_READ | RSRC_CONF | ACCESS_CONF | OR_OPTIONS | OR_ALL),
+               "Allow ASP <% code %> Tags."
+               ),
+  AP_INIT_FLAG("TweplSendLength",
+               twepl_set_option_send_length,
+               NULL,
+               (EXEC_ON_READ | RSRC_CONF | ACCESS_CONF | OR_OPTIONS | OR_ALL),
+               "Send forcing Content-Length header."
+               ),
+  AP_INIT_FLAG("TweplMyApplePie",
+               twepl_set_option_applepie,
+               NULL,
+               (EXEC_ON_READ | RSRC_CONF | ACCESS_CONF | OR_OPTIONS | OR_ALL),
+               "Attempted avoid KCF 303 Error. bake apple pie."
                ),
   {NULL}
 };
 
-static void *twepl_create_dir_config(apr_pool_t *p,char *dir){
+static void *twepl_create_svr_config(apr_pool_t *p, server_rec *s){
   TWEPL_CONFIG *conf = (TWEPL_CONFIG *)apr_palloc(p,sizeof(TWEPL_CONFIG));
-  conf->TWEPL_OPTIONS = NULL;
-  conf->TWEPL_RDFLINE = 0;
-  return (void *)conf;
-}
-
-static void *twepl_create_svr_config(apr_pool_t *p,server_rec *s){
-  TWEPL_CONFIG *conf = (TWEPL_CONFIG *)apr_palloc(p,sizeof(TWEPL_CONFIG));
-  conf->TWEPL_OPTIONS = NULL;
-  conf->TWEPL_RDFLINE = 0;
-  return (void *)conf;
+  conf->ParserFlag = OPT_TAG_NON;
+  conf->SendLength = 0;
+  conf->MyApplePie = 0;
+  return conf;
 }
 
 /* The sample content handler */
 static int twepl_handler(request_rec *r)
 {
-        TWEPL_CONFIG  *conf;
-                char  *twepl_option;
+        TWEPL_CONFIG  *twepl_conf;
 
                 char **twepl_envp;
                 char  *twepl_args[] = { "mod_" EPL_XS_NAME "\0", r->filename, NULL };
@@ -89,18 +145,19 @@ static int twepl_handler(request_rec *r)
                  int   twepl_apst;
                  int   twepl_awst;
                  int   twepl_pret;
-                 int   twepl_pwhy;
+      apr_exit_why_e   twepl_pwhy;
 
   apr_bucket_brigade  *obr;
           apr_bucket  *obk;
 
-  if(strcmp(r->handler, "twepl-script") != 0) {
+  if(strcmp(r->handler, "twepl-script") != 0)
     return DECLINED;
-  }
+  if(access(r->filename, F_OK) == -1)
+    return HTTP_NOT_FOUND;
+
   ap_set_content_type(r, "text/html");
 
-  conf = (TWEPL_CONFIG *)ap_get_module_config(r->server->module_config, &twepl_module);
-  twepl_option = conf->TWEPL_OPTIONS;
+  twepl_conf = (TWEPL_CONFIG *)ap_get_module_config(r->server->module_config, &twepl_module);
 
   ap_add_common_vars(r);
   ap_add_cgi_vars(r);
@@ -113,24 +170,43 @@ static int twepl_handler(request_rec *r)
 
   switch(twepl_apst = apr_proc_fork(&twepl_proc , r->pool)){
     case APR_INCHILD:
-      twepl_stat = twepl_script_handler(r, r->filename, twepl_argc, twepl_argv, twepl_envp);
+      twepl_stat = twepl_script_handler(r, r->filename, twepl_argc, twepl_argv, twepl_envp, twepl_conf);
       exit(twepl_stat);
+      break;
     case APR_INPARENT:
-      twepl_awst = apr_proc_wait(&twepl_proc, &twepl_pret, NULL, APR_WAIT);
+      if((twepl_awst = apr_proc_wait(&twepl_proc, &twepl_pret, &twepl_pwhy, APR_WAIT)) != APR_CHILD_DONE){
+        ap_log_rerror(APLOG_MARK, APLOG_ERR, APR_EGENERAL, r, "%s - apr_proc_wait() failed.", EPL_XS_NAME "\0");
+        return HTTP_INTERNAL_SERVER_ERROR;
+      }
       break;
     default:
       ap_log_rerror(APLOG_MARK, APLOG_ERR, twepl_apst, r, "%s: apr_proc_fork() failed.", EPL_XS_NAME "\0");
       return HTTP_INTERNAL_SERVER_ERROR;
+      break;
+  }
+
+  switch(twepl_pwhy){
+    case APR_PROC_EXIT:
+      break;
+    case APR_PROC_SIGNAL:
+      ap_log_rerror(APLOG_MARK, APLOG_ERR, APR_EGENERAL, r, "%s - apr_proc_child exited signal.", EPL_XS_NAME "\0");
+      return HTTP_INTERNAL_SERVER_ERROR;
+    case APR_PROC_SIGNAL_CORE:
+      ap_log_rerror(APLOG_MARK, APLOG_ERR, APR_EGENERAL, r, "%s - apr_proc_child exited segfault.", EPL_XS_NAME "\0");
+      return HTTP_INTERNAL_SERVER_ERROR;
+    default:
+      ap_log_rerror(APLOG_MARK, APLOG_ERR, APR_EGENERAL, r, "%s - apr_proc_child exited unknown code exit_why_e is%d, child process exited status by %d, parent status is %d.", EPL_XS_NAME "\0", (int)twepl_pwhy, twepl_pret, twepl_stat);
+      return HTTP_INTERNAL_SERVER_ERROR;
   }
 
   /*  Apple  */
-  if(r->chunked){
+  if(twepl_conf->MyApplePie && r->chunked){
     obr = apr_brigade_create(r->pool, r->output_filters->c->bucket_alloc);
-    obk = apr_bucket_immortal_create(ASCII_CRLF, 2, r->output_filters->c->bucket_alloc);
+    obk = apr_bucket_immortal_create(EPL_CRLF, 2, r->output_filters->c->bucket_alloc);
     APR_BRIGADE_INSERT_TAIL(obr, obk);
   }
 
-  return twepl_stat;
+  return twepl_pret;
 
 }
 
@@ -147,7 +223,7 @@ static void twepl_register_hooks(apr_pool_t *p){
 /* Dispatch list for API hooks */
 module AP_MODULE_DECLARE_DATA twepl_module = {
   STANDARD20_MODULE_STUFF,
-  twepl_create_dir_config, /* create per-dir    config structures */
+  NULL,                    /* create per-dir    config structures */
   NULL,                    /* merge  per-dir    config structures */
   twepl_create_svr_config, /* create per-server config structures */
   NULL,                    /* merge  per-server config structures */

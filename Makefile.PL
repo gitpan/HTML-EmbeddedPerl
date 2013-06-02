@@ -8,7 +8,7 @@ WriteMakefile(
   VERSION_FROM  => 'lib/HTML/EmbeddedPerl.pm',
   INST_SCRIPT   => 'blib/bin',
   INC           => '-I . -I mod_twepl',
-  EXE_FILES     => ["bin/twepl$Config{_exe}"],
+  EXE_FILES     => ["bin/twepc$Config{_exe}", "bin/twepl$Config{_exe}"],
 );
 
 # xsubpp

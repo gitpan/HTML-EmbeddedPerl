@@ -1,4 +1,4 @@
-HTML-EmbeddedPerl version 0.90
+HTML::EmbeddedPerl ver 0.91
 ==============================
 
 OVERVIEW
@@ -35,3 +35,4 @@ COPYRIGHT
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
+

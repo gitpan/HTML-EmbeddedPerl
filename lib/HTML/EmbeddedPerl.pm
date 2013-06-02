@@ -6,33 +6,27 @@ use warnings;
 use Exporter;
 
 our @ISA       = qw(Exporter);
-our @EXPORT_OK = qw(headers_out header content_type echo $VERSION);
+our @EXPORT    = qw(ep header_out header content_type echo OPT_TAG_NON OPT_TAG_ALL OPT_TAG_EPL OPT_TAG_DOL OPT_TAG_PHP OPT_TAG_ASP);
+our @EXPORT_OK = qw($EPLOPT $VERSION);
 
-our $VERSION = '0.90';
-
-our %HEADER;
-our $CONTYP = 'text/html';
-
-our $STIBAK;
-our $STITMP;
-our $STIBUF;
-our $STOBAK;
-our $STOTMP;
-our $STOBUF;
+our $VERSION = '0.91';
 
 use XSLoader;
 XSLoader::load('HTML::EmbeddedPerl', $VERSION);
 
 sub handler{
   my $r = shift;
-  my $t = _twepl_handler($r->filename);
-  foreach my $e(sort keys %HEADER){
-    $r->headers_out($e, $HEADER{$e});
+  return 404 if(!-f $r->filename);
+  my $c = _twepl_handler($r->filename);
+  my %h = eval '%'.__PACKAGE__.'::HEADER;';
+  my $t = eval '$'.__PACKAGE__.'::CONTYP;';
+  foreach my $e(keys %h){
+    $r->header_out($e, $h{$e});
   }
-  $r->content_type($CONTYP);
-  $r->puts($t);
-  $r->flush();
-  200;
+  $r->content_type($t);
+  $r->puts($c);
+  $r->rflush();
+  0;
 }
 
 1;
@@ -51,7 +45,7 @@ I<automatic> for mod_perl2.
 
 The Perl source code embeddings for HTML.
 
-adding I<E<lt>?(p5|pl|pl5|perl|perl5)? Perl-Code ?E<gt>> to your HTML.
+adding I<E<lt>([|:$?%])(p5|pl|pl5|perl|perl5)? Perl-Code $1E<gt>> to your HTML.
 
 =head1 AUTHOR
 

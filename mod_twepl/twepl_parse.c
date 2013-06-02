@@ -3,6 +3,53 @@
 
 #include "twepl_parse.h"
 
+char strnchr(char src, char *cmp){
+
+  long i;
+
+  for(i=0; i<(long)strlen(cmp); i++){
+    if(src == cmp[i]) return cmp[i];
+  }
+
+  return 0;
+
+}
+
+long twepl_serach_optag(char *src, long ssz, long idx, char *tmc, char *fmc){
+
+  char *tmp;
+  char  fmt;
+  long  i;
+
+  tmp = src + idx;
+
+  for(i=0; (i+idx)<ssz&&*tmp!='\0'; i++){
+    if(*tmp == '<' && (fmt = strnchr(tmp[1], tmc)) != 0){
+      fmc[0] = fmt; return i;
+    }; tmp++;
+  }
+
+  return i;
+
+}
+
+long twepl_serach_edtag(char *src, long ssz, long idx, char *emc){
+
+  char *tmp;
+  long  i;
+
+  tmp = src + idx;
+
+  for(i=0; (i+idx)<ssz&&*tmp!='\0'; i++){
+    if(strncmp(tmp, emc, 2) == 0){
+      return i;
+    }; tmp++;
+  }
+
+  return i;
+
+}
+
 long count_quote(char *src, long stp, long edp){
 
   long  c = 0;
@@ -20,54 +67,56 @@ long count_quote(char *src, long stp, long edp){
 
 }
 
-long twepl_serach_tag(char *src, long ssz, long idx, int ttp){
-
-  char *tmp;
-  char  tag[3];
-  long  i;
-
-  tmp = src + idx;
-
-  (ttp)? strcpy(tag, EPL_TAG ">") : strcpy(tag, "<" EPL_TAG "\0");
-
-  for(i=0; (i+idx)<ssz&&*tmp!='\0'; i++){
-    if(strncmp(tmp, tag, 2) == 0){
-      return i;
-    }; tmp++;
-  }
-
-  return i;
-
-}
-
-int twepl_optag_skip(char *src, int idx){
+int twepl_optagstr_skip(char *src, int idx){
 
     if(strncasecmp((src + idx), "p5\0", 2) == 0){
       return 2;
-    } else if(strncasecmp((src + idx), "pl\0", 2) == 0){
-      return 2;
     } else if(strncasecmp((src + idx), "pl5\0", 3) == 0){
       return 3;
-    } else if(strncasecmp((src + idx), "perl\0", 4) == 0){
-      return 4;
+    } else if(strncasecmp((src + idx), "pl\0", 2) == 0){
+      return 2;
     } else if(strncasecmp((src + idx), "perl5\0", 5) == 0){
       return 5;
+    } else if(strncasecmp((src + idx), "perl\0", 4) == 0){
+      return 4;
     }
 
   return 0;
 
 }
 
-int twepl_lint(char *src, long ssz, long *nsz){
+enum TWEPL_STATE twepl_lint(char *src, long ssz, long *nsz, int opf){
 
-  long idx = 0;
-  long ret = 0;
-  long qqc = 0;
-  long erf = 0;
+  long  idx = 0;
+  long  ret = 0;
+  long  qqc = 0;
+  long  erf = 0;
+
+  char *tmc;
+  char *fmc;
+  char *emc;
+
+  if((tmc = (char*)malloc(8)) == NULL){
+    return TWEPL_FAIL_MALOC;
+  } else if((fmc = (char*)malloc(2)) == NULL){
+    free(tmc); return TWEPL_FAIL_MALOC;
+  } else if((emc = (char*)malloc(3)) == NULL){
+    free(tmc); free(fmc); return TWEPL_FAIL_MALOC;
+  }
+
+  memset(tmc, '\0', 8);
+  memset(fmc, '\0', 2);
+  memset(emc, '\0', 3);
+  strcpy(tmc, EPL_TAG_DEF);
+
+  if(is_EPL(opf)) strcat(tmc, EPL_TAG_EPL);
+  if(is_DOL(opf)) strcat(tmc, EPL_TAG_DOL);
+  if(is_PHP(opf)) strcat(tmc, EPL_TAG_PHP);
+  if(is_ASP(opf)) strcat(tmc, EPL_TAG_ASP);
 
   while(ssz > idx){
 
-    ret = twepl_serach_tag(src, ssz, idx, 0);
+    ret = twepl_serach_optag(src, ssz, idx, tmc, fmc);
 
     if(ret != 0){
 
@@ -82,9 +131,11 @@ int twepl_lint(char *src, long ssz, long *nsz){
     }
 
     idx += (ret + 2);
-    idx += twepl_optag_skip(src, idx);
+    idx += twepl_optagstr_skip(src, idx);
 
-    ret = twepl_serach_tag(src, ssz, idx, 1);
+    emc[0] = fmc[0]; emc[1] = '>'; emc[2] = '\0';
+
+    ret = twepl_serach_edtag(src, ssz, idx, emc);
 
     if((idx+ret) >= ssz){
       erf = 1; break;
@@ -95,6 +146,8 @@ int twepl_lint(char *src, long ssz, long *nsz){
     *nsz += idx;
 
   }
+
+  free(tmc); free(fmc); free(emc);
 
   if(erf == 1){
     return TWEPL_FAIL_TAGED;
@@ -127,16 +180,38 @@ int twepl_quote(char *src, char *cnv, long stp, long edp){
 
 }
 
-int twepl_parse(char *src, char *cnv, long ssz){
+enum TWEPL_STATE twepl_parse(char *src, char *cnv, long ssz, int opf){
 
-  long idx = 0;
-  long ret = 0;
-  long qqc = 0;
-  long erf = 0;
+  long  idx = 0;
+  long  ret = 0;
+  long  qqc = 0;
+  long  erf = 0;
+
+  char *tmc;
+  char *fmc;
+  char *emc;
+
+  if((tmc = (char*)malloc(8)) == NULL){
+    return TWEPL_FAIL_MALOC;
+  } else if((fmc = (char*)malloc(2)) == NULL){
+    free(tmc); return TWEPL_FAIL_MALOC;
+  } else if((emc = (char*)malloc(3)) == NULL){
+    free(tmc); free(fmc); return TWEPL_FAIL_MALOC;
+  }
+
+  memset(tmc, '\0', 8);
+  memset(fmc, '\0', 2);
+  memset(emc, '\0', 3);
+  strcpy(tmc, EPL_TAG_DEF);
+
+  if(is_EPL(opf)) strcat(tmc, EPL_TAG_EPL);
+  if(is_DOL(opf)) strcat(tmc, EPL_TAG_DOL);
+  if(is_PHP(opf)) strcat(tmc, EPL_TAG_PHP);
+  if(is_ASP(opf)) strcat(tmc, EPL_TAG_ASP);
 
   while(ssz > idx){
 
-    ret = twepl_serach_tag(src, ssz, idx, 0);
+    ret = twepl_serach_optag(src, ssz, idx, tmc, fmc);
 
     if(ret != 0){
 
@@ -158,9 +233,11 @@ int twepl_parse(char *src, char *cnv, long ssz){
     }
 
     idx += (ret + 2);
-    idx += twepl_optag_skip(src, idx);
+    idx += twepl_optagstr_skip(src, idx);
 
-    ret = twepl_serach_tag(src, ssz, idx, 1);
+    emc[0] = fmc[0]; emc[1] = '>'; emc[2] = '\0';
+
+    ret = twepl_serach_edtag(src, ssz, idx, emc);
 
     if((idx+ret) >= ssz){
       erf = 1; break;
@@ -175,6 +252,8 @@ int twepl_parse(char *src, char *cnv, long ssz){
 
   }
 
+  free(tmc); free(fmc); free(emc);
+
   if(erf == 1){
     return TWEPL_FAIL_TAGED;
   } else{
@@ -183,100 +262,89 @@ int twepl_parse(char *src, char *cnv, long ssz){
 
 }
 
-char *twepl_file(char *ifp, char *cnv, int *err){
+enum TWEPL_STATE twepl_file(char *ifp, char **cnv, int opf){
 
-  FILE *epf;
+  enum TWEPL_STATE  ret;
 
-  char *src;
+              FILE *epf;
 
-  long  fsz, ret;
-  long  csz = 0;
+              char *src;
+
+              long  fsz;
+              long  csz = 0;
 
   if((epf = fopen(ifp, "rb")) == NULL){
-    *err = TWEPL_FAIL_FOPEN;
-    return NULL;
+    return TWEPL_FAIL_FOPEN;
   }
 
   /* fseek (MAX: 2GB) */
   if((fseek(epf, 0, SEEK_END)) == -1){
-    *err = TWEPL_FAIL_FSEEK;
-    return NULL;
+    return TWEPL_FAIL_FSEEK;
   }
   /* File size */
   if((fsz = ftell(epf)) == -1){
-    *err = TWEPL_FAIL_FTELL;
-    return NULL;
+    return TWEPL_FAIL_FTELL;
   }
   /* Return */
   if((fseek(epf, 0, SEEK_SET)) == -1){
-    *err = TWEPL_FAIL_FSEEK;
-    return NULL;
+    return TWEPL_FAIL_FSEEK;
   }
 
   if((src = (char *)malloc(fsz+1)) == NULL){
-    *err = TWEPL_FAIL_MALOC;
-    return NULL;
+    return TWEPL_FAIL_MALOC;
   }; src[fsz] = '\0';
 
   if((fread(src, sizeof(char), fsz, epf)) == -1){
-    *err = TWEPL_FAIL_FREAD;
-    return NULL;
+    return TWEPL_FAIL_FREAD;
   }
 
   fclose(epf);
 
-  *err = twepl_lint(src, fsz, &csz);
-
-  if(*err != TWEPL_OKEY_NOERR){
+  if((ret = twepl_lint(src, fsz, &csz, opf)) != TWEPL_OKEY_NOERR){
     free(src);
-    return NULL;
+    return ret;
   }
 
-  if((cnv = (char *)malloc(csz+1)) == NULL){
-    *err = TWEPL_FAIL_MALOC;
+  if((*cnv = (char *)malloc(csz+1)) == NULL){
     free(src);
-    return NULL;
-  }; memset(cnv, '\0', (csz + 1));
+    return TWEPL_FAIL_MALOC;
+  }; memset(*cnv, '\0', (csz + 1));
 
-  twepl_parse(src, cnv, fsz);
+  twepl_parse(src, *cnv, fsz, opf);
 
   free(src);
 
-  return cnv;
+  return TWEPL_OKEY_NOERR;
 
 }
 
-char *twepl_code(char *src, char *cnv, int *err){
+enum TWEPL_STATE twepl_code(char *src, char **cnv, int opf){
 
-  long  ssz, ret;
-  long  csz = 0;
+  enum TWEPL_STATE  ret;
+
+              long  ssz;
+              long  csz = 0;
 
   if(!(ssz = strlen(src))){
-    *err = TWEPL_FAIL_SLENG;
-    return NULL;
+    return TWEPL_FAIL_SLENG;
   }
 
-  *err = twepl_lint(src, ssz, &csz);
-
-  if(*err != TWEPL_OKEY_NOERR){
-    free(src);
-    *err = ret;
-    return NULL;
+  if((ret = twepl_lint(src, ssz, &csz, opf)) != TWEPL_OKEY_NOERR){
+    return ret;
   }
 
-  if((cnv = (char *)malloc(csz+1)) == NULL){
-    *err = TWEPL_FAIL_MALOC;
-    return NULL;
-  }; memset(cnv, '\0', (csz + 1));
+  if((*cnv = (char *)malloc(csz+1)) == NULL){
+    return TWEPL_FAIL_MALOC;
+  }; memset(*cnv, '\0', (csz + 1));
 
-  twepl_parse(src, cnv, ssz);
+  twepl_parse(src, *cnv, ssz, opf);
 
-  return cnv;
+  return TWEPL_OKEY_NOERR;
 
 }
 
-const char *twepl_strerr(int num){
-  return (const char*)TWEPL_ERROR_STRING[num];
+const char *twepl_strerr(enum TWEPL_STATE state){
+  return (const char*)TWEPL_ERROR_STRING[state];
 }
 
 #endif
